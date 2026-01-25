@@ -1,11 +1,14 @@
 {
   "name": "@figma/my-make-file",
+  "homepage":"https://AHR275.github.io/Taskmanagementui/",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "predeploy":"npm run build",
+    "deploy": "gh-pages -d dist" 
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
