@@ -141,7 +141,68 @@ export default function App() {
 
   return (
     <div className={isDark ? 'dark' : ''}>
-      {/* ... rest of the JSX remains the same ... */}
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex">
+        {/* Sidebar */}
+        <Sidebar
+          categories={categories}
+          selectedSection={selectedSection}
+          onSelectSection={setSelectedSection}
+          onAddCategory={() => setIsCategoryDialogOpen(true)}
+          onEditCategory={openEditCategoryDialog}
+          onDeleteCategory={handleDeleteCategory}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="border-b border-border bg-card">
+            <div className="px-6 py-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-semibold">Task Tracker</h1>
+                <p className="text-muted-foreground mt-1">Manage your daily tasks and habits</p>
+              </div>
+              <button
+                onClick={toggleTheme}
+                className="p-3 rounded-lg bg-secondary hover:bg-accent transition-colors"
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+          </header>
+
+          {/* Task List */}
+          <main className="flex-1 overflow-y-auto">
+            <TaskList
+              tasks={tasks}
+              categories={categories}
+              selectedSection={selectedSection}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              onAddTask={() => setIsTaskDialogOpen(true)}
+              onEditTask={openEditDialog}
+              onDeleteTask={handleDeleteTask}
+              onToggleComplete={handleToggleComplete}
+            />
+          </main>
+        </div>
+
+        {/* Dialogs */}
+        <TaskDialog
+          isOpen={isTaskDialogOpen}
+          onClose={closeTaskDialog}
+          onSubmit={editingTask ? handleEditTask : handleAddTask}
+          initialTask={editingTask || undefined}
+          categories={categories}
+        />
+
+        <CategoryDialog
+          isOpen={isCategoryDialogOpen}
+          onClose={closeCategoryDialog}
+          onSubmit={editingCategory ? handleEditCategory : handleAddCategory}
+          initialCategory={editingCategory || undefined}
+        />
+      </div>
     </div>
   );
 }

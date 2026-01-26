@@ -64,12 +64,12 @@ export function TaskList({
 
   // Helper function to check if a task is weekly
   const isWeeklyTask = (task) => {
-    return task.scheduleType === 'weekly' || task.scheduleType === 'daily';
+    return task.scheduleType === 'weekly' ;
   };
 
   // Helper function to check if a task is monthly
   const isMonthlyTask = (task) => {
-    return task.scheduleType === 'monthly' || task.scheduleType === 'weekly' || task.scheduleType === 'daily';
+    return task.scheduleType === 'monthly'  ;
   };
 
   // Filter tasks based on selected section

@@ -7,15 +7,15 @@ import { X } from 'lucide-react';
 export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [importance, setImportance] = useState<'low' | 'medium' | 'high'>('medium');
+  const [difficulty, setDifficulty] = useState('medium');
+  const [importance, setImportance] = useState('medium');
   const [category, setCategory] = useState('');
-  const [scheduleType, setScheduleType] = useState<'one-time' | 'daily' | 'weekly' | 'monthly' | 'custom'>('one-time');
+  const [scheduleType, setScheduleType] = useState('one-time');
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   
   // Recurrence settings
-  const [recurrencePattern, setRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'interval'>('daily');
+  const [recurrencePattern, setRecurrencePattern] = useState('daily');
   const [intervalDays, setIntervalDays] = useState(2);
   const [selectedDaysOfWeek, setSelectedDaysOfWeek] = useState([]);
   const [selectedDaysOfMonth, setSelectedDaysOfMonth] = useState([]);
