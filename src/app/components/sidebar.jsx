@@ -28,7 +28,7 @@ export function Sidebar({
         {/* Main Sections */}
         <div>
           <h3 className="text-sm text-muted-foreground mb-2 px-2">Main</h3>
-          <div className="space-y-1">
+          <div className="space-y-1 grid items-center gap-1">
             {mainSections.map((section) => {
               const Icon = section.icon;
               const isActive = selectedSection === section.id;
@@ -36,7 +36,7 @@ export function Sidebar({
                 <button
                   key={section.id}
                   onClick={() => onSelectSection(section.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-2 transition-colors ${
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'hover:bg-secondary text-foreground'
@@ -68,11 +68,12 @@ export function Sidebar({
               return (
                 <div
                   key={category.id}
-                  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  className={`group flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-primary text-primary-foreground'
+                      ? ' text-primary-foreground'
                       : 'hover:bg-secondary'
                   }`}
+                  style={!isActive?{ backgroundColor:`${category.color}30`}:{ backgroundColor:`${category.color}`}}
                 >
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
@@ -84,7 +85,7 @@ export function Sidebar({
                   >
                     {category.name}
                   </button>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1  group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => onEditCategory(category)}
                       className="p-1 hover:bg-accent rounded transition-colors"

@@ -118,7 +118,7 @@ export function TaskList({
               <h2 className="text-2xl font-semibold">{getSectionTitle()}</h2>
               <button
                 onClick={onAddTask}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity"
               >
                 <Plus className="w-5 h-5" />
                 Add Task

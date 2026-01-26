@@ -9,7 +9,7 @@ const presetColors = [
 
 export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory }) {
   const [name, setName] = useState('');
-  const [color, setColor] = useState(presetColors[0]);
+  const [color, setColor] = useState("#8b5cf6");
 
   useEffect(() => {
     if (initialCategory) {
@@ -17,7 +17,7 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory }) {
       setColor(initialCategory.color);
     } else {
       setName('');
-      setColor(presetColors[0]);
+      setColor("#8b5cf6");
     }
   }, [initialCategory, isOpen]);
 
@@ -31,7 +31,7 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory }) {
     });
 
     setName('');
-    setColor(presetColors[0]);
+    setColor("#8b5cf6");
   };
 
   if (!isOpen) return null;
@@ -76,9 +76,9 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory }) {
           </div>
 
           <div>
-            <label className="block mb-2">Color</label>
-            <div className="grid grid-cols-9 gap-2">
-              {presetColors.map((presetColor) => (
+            {/* <label className="block mb-2">Color</label>
+            <input type="color" value={color} className="">
+              {/* {presetColors.map((presetColor) => (
                 <button
                   key={presetColor}
                   type="button"
@@ -89,8 +89,15 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory }) {
                   style={{ backgroundColor: presetColor }}
                   aria-label={`Select color ${presetColor}`}
                 />
-              ))}
-            </div>
+              ))} 
+            </input> */}
+
+            <label htmlFor="exampleColorInput" className="form-label">Color picker</label>
+            <input type="color" className="form-control form-control-color" id="category-color-input" value={color} title="Choose your color"
+            onChange={(e)=>{
+              setColor(e.target.value)
+            }}
+            ></input>
           </div>
 
           <div className="flex gap-3 pt-4">

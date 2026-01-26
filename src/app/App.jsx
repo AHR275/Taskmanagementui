@@ -163,7 +163,7 @@ export default function App() {
               </div>
               <button
                 onClick={toggleTheme}
-                className="p-3 rounded-lg bg-secondary hover:bg-accent transition-colors"
+                className="p-3  rounded-circle  hover:bg-accent transition-colors"
                 aria-label="Toggle theme"
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
