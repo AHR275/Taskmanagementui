@@ -1,10 +1,6 @@
-import type { Task } from '@/app/App';
+import { Task } from '../App';
 
-interface MonthlyRateTrackerProps {
-  tasks: Task[];
-}
-
-export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
+export function MonthlyRateTracker({ tasks }) {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
@@ -14,7 +10,7 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
   // Helper function to check if a task is due on a specific date
-  const isTaskDueOnDate = (task: Task, dateStr: string): boolean => {
+  const isTaskDueOnDate = (task, dateStr) => {
     const date = new Date(dateStr + 'T00:00:00');
     const dayOfWeek = date.getDay();
     const dayOfMonth = date.getDate();
@@ -43,7 +39,7 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
   };
 
   // Calculate completion rate for a specific day
-  const getDayStatus = (day: number) => {
+  const getDayStatus = (day) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const date = new Date(dateStr + 'T00:00:00');
     const todayStr = new Date().toISOString().split('T')[0];
@@ -57,7 +53,7 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
     const tasksForDay = tasks.filter(task => isTaskDueOnDate(task, dateStr));
 
     if (tasksForDay.length === 0) {
-      return { color: '#3b82f6', label: 'No tasks', percentage: null }; // Blue
+      return { color: '#3b82f6', label: 'No tasks', percentage: null };
     }
 
     // Count completed tasks
@@ -71,23 +67,25 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
     const completionRate = (completedTasks.length / tasksForDay.length) * 100;
 
     if (completionRate === 100) {
-      return { color: '#fbbf24', label: 'All done', percentage: 100 }; // Gold
+      return { color: '#fbbf24', label: 'All done', percentage: 100 };
     } else if (completionRate > 0) {
-      return { color: '#10b981', label: 'Partial', percentage: Math.round(completionRate) }; // Green
+      return { color: '#10b981', label: 'Partial', percentage: Math.round(completionRate) };
     } else {
-      return { color: '#ef4444', label: 'None done', percentage: 0 }; // Red
+      return { color: '#ef4444', label: 'None done', percentage: 0 };
     }
   };
 
   // Create calendar grid
   const calendarDays = [];
-  
-  // Add empty cells for days before the first day of month
+
+  // Add empty cells before first day
   for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="aspect-square" />);
+    calendarDays.push(
+      <div key={`empty-${i}`} className="aspect-square" />
+    );
   }
 
-  // Add all days of the month
+  // Add days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     const status = getDayStatus(day);
     calendarDays.push(
@@ -100,7 +98,6 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
         <span className="text-white drop-shadow">
           {status.percentage !== null ? `${status.percentage}%` : ''}
         </span>
-        {/* Tooltip on hover */}
         <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10">
           Day {day}: {status.label}
         </div>
@@ -108,10 +105,10 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
     );
   }
 
-  const monthName = new Date(currentYear, currentMonth).toLocaleDateString('en-US', { 
-    month: 'long', 
-    year: 'numeric' 
-  });
+  const monthName = new Date(currentYear, currentMonth).toLocaleDateString(
+    'en-US',
+    { month: 'long', year: 'numeric' }
+  );
 
   return (
     <div className="p-6">
@@ -120,31 +117,15 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
 
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded" style={{ backgroundColor: '#3b82f6' }} />
-            <span>No tasks</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded" style={{ backgroundColor: '#10b981' }} />
-            <span>Partial completion</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded" style={{ backgroundColor: '#fbbf24' }} />
-            <span>All completed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded" style={{ backgroundColor: '#ef4444' }} />
-            <span>None completed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded" style={{ backgroundColor: '#9ca3af' }} />
-            <span>Future</span>
-          </div>
+          <Legend color="#3b82f6" label="No tasks" />
+          <Legend color="#10b981" label="Partial completion" />
+          <Legend color="#fbbf24" label="All completed" />
+          <Legend color="#ef4444" label="None completed" />
+          <Legend color="#9ca3af" label="Future" />
         </div>
 
         {/* Calendar Grid */}
         <div className="bg-card border border-border rounded-lg p-6">
-          {/* Day labels */}
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-center text-sm font-medium text-muted-foreground">
@@ -153,12 +134,20 @@ export function MonthlyRateTracker({ tasks }: MonthlyRateTrackerProps) {
             ))}
           </div>
 
-          {/* Calendar days */}
           <div className="grid grid-cols-7 gap-2">
             {calendarDays}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Legend({ color, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-6 h-6 rounded" style={{ backgroundColor: color }} />
+      <span>{label}</span>
     </div>
   );
 }
