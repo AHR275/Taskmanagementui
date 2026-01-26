@@ -1,5 +1,5 @@
 import { Edit2, Trash2, Clock, Calendar, Bell, CheckCircle2, Circle } from 'lucide-react';
-import  { Task, Category } from '../App';
+// import  { Task, Category } from '../App';
 
 
 const difficultyColors = {

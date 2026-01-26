@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import  { Task, Category } from '../App';
+// import  { Task, Category } from '../App';
 
 
 

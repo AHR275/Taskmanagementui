@@ -1,5 +1,5 @@
 import { Calendar, CalendarDays, CalendarRange, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react';
-import  { Category } from '../App';
+// import  { Category } from '../App';
 
 
 const mainSections = [

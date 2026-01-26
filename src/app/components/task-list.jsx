@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react';
 import { TaskCard } from '../components/task-card';
 import { DateNavigation } from '../components/date-navigation';
 import { MonthlyRateTracker } from '../components/monthly-rate-tracker';
-import  { Task, Category } from '../App';
+// import  { Task, Category } from '../App';
 
 
 export function TaskList({
