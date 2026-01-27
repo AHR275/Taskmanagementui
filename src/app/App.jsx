@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun ,Menu} from 'lucide-react';
 import { Sidebar } from './components/sidebar';
 import { TaskList } from './components/task-list';
 import { TaskDialog } from './components/task-dialog';
@@ -7,6 +7,7 @@ import { CategoryDialog } from './components/category-dialog';
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
+  let sideBar = document.getElementById("side-bar");
   
   // Removed <Category[]> type generic
   const [categories, setCategories] = useState([
@@ -153,10 +154,28 @@ export default function App() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div id="main-div" className={`flex-1 flex flex-col transform transition-transform duration-500 translate-x-[100] `}>
           {/* Header */}
-          <header className="border-b border-border bg-card">
-            <div className="px-6 py-6 flex items-center justify-between">
+          <header className="border-b border-border bg-card relative pl-8"
+          style={{zIndex:"1"}}
+          >
+          <button 
+            className="p-1 open-close-sideBar-btns rounded-circle transition-colors absolute"
+            style={{top:"25px",left:"10px"}}
+            onClick={()=>{
+              let sideBar = document.getElementById("side-bar"); 
+              sideBar.classList.remove("-translate-x-[100vw]");
+              let mainDiv= document.getElementById("main-div");
+              // mainDiv.style.display="absolute"
+              mainDiv.classList.remove(`translate-x-[${sideBar.width}]`)
+              mainDiv.style.width -= sideBar.style.width;
+              console.log(mainDiv);
+   
+            }}
+          >
+            <Menu className="w-5 h-5"/>
+          </button>
+            <div className="px-6 py-6 flex items-center justify-between mr-3">
               <div>
                 <h1 className="text-3xl font-semibold">Task Tracker</h1>
                 <p className="text-muted-foreground mt-1">Manage your daily tasks and habits</p>
