@@ -1,5 +1,7 @@
 import { Calendar, CalendarDays, CalendarRange, CheckSquare, Plus, Edit2, Trash2 ,X } from 'lucide-react';
+import { useEffect } from 'react';
 // import  { Category } from '../App';
+
 
 
 const mainSections = [
@@ -20,6 +22,13 @@ export function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen
 }) {
+
+//   useEffect(() => {
+//   fetch("http://localhost:4000/health")
+//     .then(res => res.json())
+//     .then(data => console.log("BACKEND:", data))
+//     .catch(err => console.error("ERROR:", err));
+// }, []);
   return (
     <aside id="side-bar"
     //  className="w-72 border-r border-border bg-card flex flex-col h-full h-screen fixed transform transition-transform duration-500 " 

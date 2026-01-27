@@ -13,7 +13,7 @@ function updateDatesState(setDatesState, centerDate) {
   let copyW = winW;
   let count = 0;
 
-  while (copyW > 370) {
+  while (copyW > 370&& count<10) {
     count++;
     copyW -= 95;
   }
