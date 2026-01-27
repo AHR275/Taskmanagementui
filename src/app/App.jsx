@@ -1,92 +1,85 @@
-import { useState } from 'react';
-import { Moon, Sun ,Menu} from 'lucide-react';
-import { Sidebar } from './components/sidebar';
-import { TaskList } from './components/task-list';
-import { TaskDialog } from './components/task-dialog';
-import { CategoryDialog } from './components/category-dialog';
+import { useState } from "react";
+import { Moon, Sun, Menu } from "lucide-react";
+import { Sidebar } from "./components/sidebar";
+import { TaskList } from "./components/task-list";
+import { TaskDialog } from "./components/task-dialog";
+import { CategoryDialog } from "./components/category-dialog";
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
-  let sideBar = document.getElementById("side-bar");
-  
-  // Removed <Category[]> type generic
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [categories, setCategories] = useState([
-    { id: 'studying', name: 'Studying', color: '#3b82f6', isDefault: false },
-    { id: 'working', name: 'Working', color: '#8b5cf6', isDefault: false },
-    { id: 'health', name: 'Health', color: '#10b981', isDefault: false },
+    { id: "studying", name: "Studying", color: "#3b82f6", isDefault: false },
+    { id: "working", name: "Working", color: "#8b5cf6", isDefault: false },
+    { id: "health", name: "Health", color: "#10b981", isDefault: false },
   ]);
-  
-  // Removed <Task[]> type generic
+
   const [tasks, setTasks] = useState([
     {
-      id: '1',
-      title: 'Morning Meditation',
-      description: 'Meditate for 10 minutes to start the day mindfully',
-      difficulty: 'easy',
-      importance: 'high',
-      category: 'health',
-      scheduleType: 'daily',
-      dueTime: '07:00',
-      recurrence: { pattern: 'daily' },
+      id: "1",
+      title: "Morning Meditation",
+      description: "Meditate for 10 minutes to start the day mindfully",
+      difficulty: "easy",
+      importance: "high",
+      category: "health",
+      scheduleType: "daily",
+      dueTime: "07:00",
+      recurrence: { pattern: "daily" },
       reminder: { enabled: true, beforeMinutes: 15 },
       completed: false,
       completedDates: [],
     },
-    // ... rest of initial tasks
+    // ...rest of initial tasks
   ]);
 
-  // Removed all <string>, <Task | null>, etc.
-  const [selectedSection, setSelectedSection] = useState('today');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedSection, setSelectedSection] = useState("today");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
+    setIsDark((v) => !v);
+    document.documentElement.classList.toggle("dark");
   };
 
-  // Removed type annotations from all function parameters
   const handleAddTask = (task) => {
-    const newTask = {
-      ...task,
-      id: Date.now().toString(),
-    };
-    setTasks([...tasks, newTask]);
+    const newTask = { ...task, id: Date.now().toString() };
+    setTasks((prev) => [...prev, newTask]);
     setIsTaskDialogOpen(false);
   };
 
   const handleEditTask = (task) => {
-    if (editingTask) {
-      setTasks(tasks.map(t => t.id === editingTask.id ? { ...task, id: editingTask.id } : t));
-      setEditingTask(null);
-      setIsTaskDialogOpen(false);
-    }
+    if (!editingTask) return;
+    setTasks((prev) =>
+      prev.map((t) => (t.id === editingTask.id ? { ...task, id: t.id } : t))
+    );
+    setEditingTask(null);
+    setIsTaskDialogOpen(false);
   };
 
   const handleDeleteTask = (id) => {
-    setTasks(tasks.filter(t => t.id !== id));
+    setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
   const handleToggleComplete = (id) => {
-    setTasks(tasks.map(t => {
-      if (t.id === id) {
-        const today = new Date().toISOString().split('T')[0];
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+
+        const today = new Date().toISOString().split("T")[0];
         const newCompleted = !t.completed;
-        const newCompletedDates = newCompleted 
+        const newCompletedDates = newCompleted
           ? [...t.completedDates, today]
-          : t.completedDates.filter(d => d !== today);
-        
-        return {
-          ...t,
-          completed: newCompleted,
-          completedDates: newCompletedDates,
-        };
-      }
-      return t;
-    }));
+          : t.completedDates.filter((d) => d !== today);
+
+        return { ...t, completed: newCompleted, completedDates: newCompletedDates };
+      })
+    );
   };
 
   const openEditDialog = (task) => {
@@ -100,34 +93,33 @@ export default function App() {
   };
 
   const handleAddCategory = (category) => {
-    const newCategory = {
-      ...category,
-      id: Date.now().toString(),
-      isDefault: false,
-    };
-    setCategories([...categories, newCategory]);
+    const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
+    setCategories((prev) => [...prev, newCategory]);
     setIsCategoryDialogOpen(false);
   };
 
   const handleEditCategory = (category) => {
-    if (editingCategory) {
-      setCategories(categories.map(c => 
-        c.id === editingCategory.id 
-          ? { ...category, id: editingCategory.id, isDefault: editingCategory.isDefault } 
+    if (!editingCategory) return;
+
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === editingCategory.id
+          ? { ...category, id: editingCategory.id, isDefault: editingCategory.isDefault }
           : c
-      ));
-      setEditingCategory(null);
-      setIsCategoryDialogOpen(false);
-    }
+      )
+    );
+
+    setEditingCategory(null);
+    setIsCategoryDialogOpen(false);
   };
 
   const handleDeleteCategory = (id) => {
-    const hasTasks = tasks.some(t => t.category === id);
+    const hasTasks = tasks.some((t) => t.category === id);
     if (hasTasks) {
-      alert('Cannot delete category with existing tasks.');
+      alert("Cannot delete category with existing tasks.");
       return;
     }
-    setCategories(categories.filter(c => c.id !== id));
+    setCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
   const openEditCategoryDialog = (category) => {
@@ -141,48 +133,61 @@ export default function App() {
   };
 
   return (
-    <div className={isDark ? 'dark' : ''}>
-      <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex">
-        {/* Sidebar */}
-        <Sidebar
-          categories={categories}
-          selectedSection={selectedSection}
-          onSelectSection={setSelectedSection}
-          onAddCategory={() => setIsCategoryDialogOpen(true)}
-          onEditCategory={openEditCategoryDialog}
-          onDeleteCategory={handleDeleteCategory}
-        />
+    <div className={isDark ? "dark" : ""}>
+      <div className="min-h-screen bg-background text-foreground overflow-hidden">
+        {/* Sidebar (off-canvas) */}
 
-        {/* Main Content */}
-        <div id="main-div" className={`flex-1 flex flex-col transform transition-transform duration-500 translate-x-[100] `}>
+          <Sidebar 
+            isSidebarOpen={isSidebarOpen}
+            categories={categories}
+            selectedSection={selectedSection}
+            setIsSidebarOpen={setIsSidebarOpen}
+            onSelectSection={setSelectedSection}
+            onAddCategory={() => setIsCategoryDialogOpen(true)}
+            onEditCategory={openEditCategoryDialog}
+            onDeleteCategory={handleDeleteCategory}
+          />
+      
+
+        {/* Backdrop */}
+
+
+        {/* Main */}
+        <div
+          id="main-div"
+          className={`min-h-screen flex flex-col relative z-10
+            transform transition-transform duration-300
+            ${isSidebarOpen ? "translate-x-64" : "translate-x-0"}
+          `}
+        >
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 z-20 "
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
           {/* Header */}
-          <header className="border-b border-border bg-card relative pl-8"
-          style={{zIndex:"1"}}
-          >
-          <button 
-            className="p-1 open-close-sideBar-btns rounded-circle transition-colors absolute"
-            style={{top:"25px",left:"10px"}}
-            onClick={()=>{
-              let sideBar = document.getElementById("side-bar"); 
-              sideBar.classList.remove("-translate-x-[100vw]");
-              let mainDiv= document.getElementById("main-div");
-              // mainDiv.style.display="absolute"
-              mainDiv.classList.remove(`translate-x-[${sideBar.width}]`)
-              mainDiv.style.width -= sideBar.style.width;
-              console.log(mainDiv);
-   
-            }}
-          >
-            <Menu className="w-5 h-5"/>
-          </button>
+          <header className="border-b border-border bg-card pl-8 relative z-10">
+            <button
+              className="p-2  hover:bg-accent transition-colors open-close-sideBar-btns rounded-circle transition-colors absolute"
+              style={{ top: "22px", left: "10px" }}
+              onClick={() => setIsSidebarOpen((v) => !v)}
+              aria-label="Toggle sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             <div className="px-6 py-6 flex items-center justify-between mr-3">
               <div>
                 <h1 className="text-3xl font-semibold">Task Tracker</h1>
-                <p className="text-muted-foreground mt-1">Manage your daily tasks and habits</p>
+                <p className="text-muted-foreground mt-1">
+                  Manage your daily tasks and habits
+                </p>
               </div>
+
               <button
                 onClick={toggleTheme}
-                className="p-3  rounded-circle  hover:bg-accent transition-colors"
+                className="p-3 rounded-circle hover:bg-accent transition-colors"
                 aria-label="Toggle theme"
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -190,8 +195,8 @@ export default function App() {
             </div>
           </header>
 
-          {/* Task List */}
-          <main className="flex-1 overflow-y-auto">
+          {/* Content */}
+          <main id="main-container" className="flex-1 overflow-y-auto">
             <TaskList
               tasks={tasks}
               categories={categories}

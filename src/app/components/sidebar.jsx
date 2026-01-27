@@ -17,9 +17,17 @@ export function Sidebar({
   onAddCategory,
   onEditCategory,
   onDeleteCategory,
+  isSidebarOpen,
+  setIsSidebarOpen
 }) {
   return (
-    <aside id="side-bar" className="w-72 border-r border-border bg-card flex flex-col h-full absolute transform transition-transform duration-500 -translate-x-[100vw]" 
+    <aside id="side-bar"
+    //  className="w-72 border-r border-border bg-card flex flex-col h-full h-screen fixed transform transition-transform duration-500 " 
+              
+          className={`fixed top-0 left-0 h-screen w-64 bg-card border-r border-border z-30
+            transform transition-transform duration-300
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
     style={{zIndex:"3"}}
     >
       <div className="p-6 border-b border-border relative ">
@@ -31,7 +39,7 @@ export function Sidebar({
           top:"20px", right:"10px"
         }}
         onClick={()=>{
-          document.getElementById("side-bar").classList.add("-translate-x-[100vw]")
+          setIsSidebarOpen(false)
         }}
         >
           <X className="w-5 h-5"/>

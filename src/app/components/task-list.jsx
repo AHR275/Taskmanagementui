@@ -107,7 +107,7 @@ export function TaskList({
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 ">
       <div className="max-w-4xl mx-auto">
         {/* Show Monthly Rate Tracker if in monthlyRate section */}
         {selectedSection === 'monthlyRate' ? (
@@ -131,7 +131,7 @@ export function TaskList({
             )}
 
             {/* Task List */}
-            <div className="space-y-4">
+            <div className="space-y-4 ">
               {filteredTasks.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-lg">
                   <p>No tasks in this section yet.</p>
