@@ -1,5 +1,5 @@
 // middleware/validateSignup.js
-import isValidCloudinaryImage  from "./validateAvatar";
+import {isValidCloudinaryImage}  from "./validateAvatar.js";
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/; // 3-20, letters/numbers/underscore
 const NAME_RE = /^[a-zA-Z\s'-]{2,25}$/;     // simple human names

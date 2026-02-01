@@ -6,7 +6,7 @@ import { TaskDialog } from "./components/task-dialog";
 import { CategoryDialog } from "./components/category-dialog";
 // import SignUp from "./components/singUp";
 import Register from "./components/register";
-import IsAuth from "./Auth";
+import IsAuth from "./js/Auth";
 import { useEffect } from "react";
 
 export default function App() {
@@ -19,6 +19,7 @@ export default function App() {
     username:'',
     email:'', 
     name:'',
+    avatar_url:''
   })
 
  useEffect(() => {
@@ -267,6 +268,8 @@ export default function App() {
                 Register
               </button>
               :
+              <>
+             
                 <button 
                 className="p-3 rounded-2 hover:bg-accent transition-colors"
                 aria-label="show dialog"
@@ -276,6 +279,11 @@ export default function App() {
                 Log out
               </button>
 
+              <img src={user.avatar_url}
+              className="rounded-circle w-[50px] h-[50px]
+               border-border border border-size-[1px]"
+              />
+               </>
 
             }
               </div>

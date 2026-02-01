@@ -12,72 +12,66 @@ import { requireAuth } from "../middleware/checkAuth.js";
 
 const UsersRoutes = express.Router();
 
+UsersRoutes.post("/", validateSignup, async (req, res) => {
+  try {
+    const { name, username, email, password, avatar_url } = req.validatedUser;
 
-// sign up an account 
-UsersRoutes.post("/", validateSignup,async (req, res) => {
-    
-    try {
-        
-        // const t = fromBody(req.body);
+    const checkUsername = await pool.query(
+      `SELECT 1 FROM users WHERE username=$1`,
+      [username]
+    );
+    if (checkUsername.rowCount > 0) {
+      return res.status(409).json({
+        ok: false,
+        message: "user already exists",
+        errors: { username: "username is already taken" },
+      });
+    }
 
-        const { name, username, email, password,avatar_url } = req.validatedUser;
-        
+    const checkEmail = await pool.query(
+      `SELECT 1 FROM users WHERE email=$1`,
+      [email]
+    );
+    if (checkEmail.rowCount > 0) {
+      return res.status(409).json({
+        ok: false,
+        message: "user already exists",
+        errors: { email: "Email is already taken" },
+      });
+    }
 
+    const passwordHashed = await bcrypt.hash(password, 10);
 
+    const created = await pool.query(
+      `INSERT INTO users (username, password, email, name, avatar_url)
+       VALUES ($1,$2,$3,$4,$5)
+       RETURNING id, name, username, email, signup_date, avatar_url`,
+      [username, passwordHashed, email, name, avatar_url ?? null]
+    );
 
-        const checkUsername= await pool.query(`
-            SELECT 1 FROM users WHERE username=$1 
-            `,[username]);
-        
-        if(checkUsername.rowCount>0){
-            return res.status(409).json({
-                ok:false, 
-                message:"user already exists", 
-                errors :{  username:"username is already taken" },
-            })
-        }
-        const checkEmail= await pool.query(`
-            SELECT 1 FROM users WHERE email=$1 
-            `,[email]);
-        
-        if(checkEmail.rowCount>0){
-            return res.status(409).json({
-                ok:false, 
-                message:"user already exists", 
-                errors :{ email: "Email is  already taken"  },
-            })
-        }
+    const newUser = created.rows[0];
 
-        const passwordHashed = await bcrypt.hash(password, 10);
+    const token = jwt.sign(
+      { userId: newUser.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-        const created = await pool.query(
-            `INSERT INTO users
-            (username, password,email,name,avatar_url )
-            VALUES ($1,$2,$3,$4,$5)
-            RETURNING id, name, username, email, signup_date`,
-            [
-                username, passwordHashed,email,name,avatar_url 
-            ]
-        );
-                const token = jwt.sign(
-                    { userId: user.id },
-                    process.env.JWT_SECRET,
-                    { expiresIn: "7d" }
-                );
-                res.cookie("token", token, {
-                    httpOnly: true,
-                    secure: false,        // true only in HTTPS production
-                    sameSite: "lax",      // "lax" is safest for dev
-                    path: "/",
-                    maxAge: 1000 * 60 * 60 * 24 * 7,
-                });
-            return res.status(201).json(toUser(created.rows[0]));
-        } catch (error) {
-            console.error(error.message);
-            return res.status(500).json({ ok: false, message: "Server error" });
-            
-        }
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return res.status(201).json(toUser(newUser));
+  } catch (error) {
+    console.error("SIGNUP ERROR:", error);
+    return res.status(500).json({ ok: false, message: error.message });
+  }
 });
+
 
 // get all users 
 // UsersRoutes.get("", async (req, res) => {
@@ -146,7 +140,7 @@ UsersRoutes.post("/login", validateSignin,async (req, res) => {
 UsersRoutes.post("/profile", requireAuth, async (req, res) => {
   // return user info based on req.user.userId
   const result = await pool.query(
-    "SELECT id, name, username, email, signup_date FROM users WHERE id=$1",
+    "SELECT id, name, username, email, signup_date,avatar_url FROM users WHERE id=$1",
     [req.user.userId]
   );
 

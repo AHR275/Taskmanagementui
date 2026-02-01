@@ -21,14 +21,12 @@ export default function SignUp({onClose}){
         e.preventDefault();
         setErrors({});
 
-        try {
-            const file = document.getElementById("avatar-input").files[0];
-            const avatar_url=  uploadAvatar(file); 
-            if(!avatar_url) return null ; 
+     
+        const file = document.getElementById("avatar-input").files[0];
+        const avatar_url=  await uploadAvatar(file); 
+        if(!avatar_url) return null ; 
 
-        } catch (error) {
-            console.error(error.message)
-        }
+
 
         try {
             const body = { name, username, email, password,avatar_url };

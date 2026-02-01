@@ -1,4 +1,4 @@
-export default function isValidCloudinaryImage(url) {
+export  function isValidCloudinaryImage(url) {
   return (
     typeof url === "string" &&
     url.startsWith("https://res.cloudinary.com/") &&
