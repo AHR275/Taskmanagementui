@@ -1,13 +1,43 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import { Moon, Sun, Menu } from "lucide-react";
 import { Sidebar } from "./components/sidebar";
 import { TaskList } from "./components/task-list";
 import { TaskDialog } from "./components/task-dialog";
 import { CategoryDialog } from "./components/category-dialog";
+// import SignUp from "./components/singUp";
+import Register from "./components/register";
+import IsAuth from "./Auth";
+import { useEffect } from "react";
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const [isUser,setIsUser]=useState(false)
+  const [user,setUser]=useState({
+    id:'',
+    username:'',
+    email:'', 
+    name:'',
+  })
+
+ useEffect(() => {
+  async function checkAuth() {
+
+    const [isAuthed, userinfo] = await IsAuth();
+
+    if (isAuthed) {
+      console.log(isAuthed);
+      setIsUser(true);
+      setUser(userinfo);
+    }
+  }
+  console.log(user);
+
+  checkAuth();
+}, []);
+
+
 
   const [categories, setCategories] = useState([
     { id: "studying", name: "Studying", color: "#3b82f6", isDefault: false },
@@ -39,6 +69,7 @@ export default function App() {
   );
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isSignupDialogOpen,setIsSignupDialogOpen]= useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
 
@@ -92,6 +123,9 @@ export default function App() {
     setEditingTask(null);
   };
 
+  const closeSignupDialog= () =>{
+    setIsSignupDialogOpen(false);
+  };
   const handleAddCategory = (category) => {
     const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
     setCategories((prev) => [...prev, newCategory]);
@@ -132,9 +166,34 @@ export default function App() {
     setEditingCategory(null);
   };
 
+  const handleLogout= async(e)=>{
+    e.preventDefault();
+    try{
+
+            const res = await fetch("http://localhost:5122/users/logout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+           
+        });
+
+        const data = await res.json().catch(() => ({}));
+        
+        if (!res.ok) {
+            console.log("Login failed:", data);
+            return;
+        }
+        
+        console.log("Login success:", data);
+    }catch(err){
+        console.error(err.message);
+    }
+    window.location.reload();
+  };
+
   return (
     <div className={isDark ? "dark" : ""}>
-      <div className="min-h-screen bg-background text-foreground overflow-hidden">
+      <div className="min-h-screen bg-background text-foreground overflow-hidden ">
         {/* Sidebar (off-canvas) */}
 
           <Sidebar 
@@ -167,7 +226,7 @@ export default function App() {
           />
         )}
           {/* Header */}
-          <header className="border-b border-border bg-card pl-8 relative z-10">
+          <header className=" bg-background pl-8 relative z-10">
             <button
               className="p-2  hover:bg-accent transition-colors open-close-sideBar-btns rounded-circle transition-colors absolute"
               style={{ top: "22px", left: "10px" }}
@@ -177,26 +236,54 @@ export default function App() {
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="px-6 py-6 flex items-center justify-between mr-3">
+            <div className="px-6 pb-1 pt-6 flex items-center justify-between mr-3">
               <div>
                 <h1 className="text-3xl font-semibold">Task Tracker</h1>
                 <p className="text-muted-foreground mt-1">
-                  Manage your daily tasks and habits
+                  Manage your daily tasks and habits {user.name!==''?<span 
+                  className=" font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
+                    , {user.name}
+                    </span>:null}
                 </p>
               </div>
 
+
+              <div className="flex flex-row gap-3 px-2 py-1 justify-content">
               <button
                 onClick={toggleTheme}
                 className="p-3 rounded-circle hover:bg-accent transition-colors"
                 aria-label="Toggle theme"
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDark ? <Sun className="w-5 h-5 max-w-5 max-h-5" /> : <Moon className="w-5 h-5 max-w-5 max-h-5" />}
               </button>
+
+              {!isUser?
+                <button 
+                className="p-3 rounded-2 hover:bg-accent transition-colors"
+                aria-label="show dialog"
+                onClick={()=>setIsSignupDialogOpen(true)}
+
+              >
+                Register
+              </button>
+              :
+                <button 
+                className="p-3 rounded-2 hover:bg-accent transition-colors"
+                aria-label="show dialog"
+                onClick={handleLogout}
+
+              >
+                Log out
+              </button>
+
+
+            }
+              </div>
             </div>
           </header>
 
           {/* Content */}
-          <main id="main-container" className="flex-1 overflow-y-auto">
+          <main id="main-container" className="flex-1 overflow-y-auto ovverflow-x-hidden">
             <TaskList
               tasks={tasks}
               categories={categories}
@@ -226,7 +313,12 @@ export default function App() {
           onSubmit={editingCategory ? handleEditCategory : handleAddCategory}
           initialCategory={editingCategory || undefined}
         />
+        <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true}></Register>
       </div>
+
     </div>
+
+    
   );
+
 }

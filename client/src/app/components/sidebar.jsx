@@ -1,5 +1,6 @@
-import { Calendar, CalendarDays, CalendarRange, CheckSquare, Plus, Edit2, Trash2 ,X } from 'lucide-react';
+import { Calendar, CalendarDays, CalendarRange, CheckSquare,X } from 'lucide-react';
 import { useEffect } from 'react';
+import Categories from './categories';
 // import  { Category } from '../App';
 
 
@@ -83,61 +84,11 @@ export function Sidebar({
         </div>
 
         {/* Custom Categories */}
-        <div>
-          <div className="flex items-center justify-between mb-2 px-2">
-            <h3 className="text-sm text-muted-foreground">Categories</h3>
-            <button
-              onClick={onAddCategory}
-              className="p-1 hover:bg-secondary rounded transition-colors"
-              aria-label="Add category"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="space-y-1">
-            {categories.map((category) => {
-              const isActive = selectedSection === category.id;
-              return (
-                <div
-                  key={category.id}
-                  className={`group flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? ' text-primary-foreground'
-                      : 'hover:border-2px'
-                  }`}
-                  style={!isActive?{ backgroundColor:`${category.color}30` }:{ backgroundColor:`${category.color}`}}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <button
-                    onClick={() => onSelectSection(category.id)}
-                    className="flex-1 text-left truncate"
-                  >
-                    {category.name}
-                  </button>
-                  <div className="flex gap-1  group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => onEditCategory(category)}
-                      className="p-1 hover:bg-accent rounded transition-colors"
-                      aria-label="Edit category"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteCategory(category.id)}
-                      className="p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
-                      aria-label="Delete category"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          <Categories categories={categories} 
+              onSelectSection={onSelectSection} onEdititem={onEditCategory} 
+              onDeleteitem={onDeleteCategory} onAddCategory={onAddCategory}
+              selectedSection={selectedSection}
+          ></Categories>
       </div>
     </aside>
   );

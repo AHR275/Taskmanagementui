@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
-import { TaskCard } from '../components/task-card';
-import { DateNavigation } from '../components/date-navigation';
-import { MonthlyRateTracker } from '../components/monthly-rate-tracker';
+import { TaskCard } from './task-card';
+import { DateNavigation } from './date-navigation';
+import { MonthlyRateTracker } from './monthly-rate-tracker';
 // import  { Task, Category } from '../App';
 
 
@@ -107,22 +107,16 @@ export function TaskList({
   };
 
   return (
-    <div className="p-6 ">
+    <div className="px-6 ">
       <div className="max-w-4xl mx-auto">
         {/* Show Monthly Rate Tracker if in monthlyRate section */}
         {selectedSection === 'monthlyRate' ? (
           <MonthlyRateTracker tasks={tasks} />
         ) : (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold">{getSectionTitle()}</h2>
-              <button
-                onClick={onAddTask}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity"
-              >
-                <Plus className="w-5 h-5" />
-                Add Task
-              </button>
+            <div className="flex items-center justify-between ">
+              {/* <h2 className="text-2xl font-semibold">{getSectionTitle()}</h2> */}
+
             </div>
 
             {/* Date Navigation - only show for "today" section */}
@@ -132,6 +126,17 @@ export function TaskList({
 
             {/* Task List */}
             <div className="space-y-4 ">
+              <div className='flex justify-end'>
+
+              <button
+                onClick={onAddTask}
+                className="flex  items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity"
+                style={{top:"20px", right:"20px"}}
+              >
+                <Plus className="w-5 h-5" />
+                Add Task
+              </button>
+              </div>
               {filteredTasks.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-lg">
                   <p>No tasks in this section yet.</p>

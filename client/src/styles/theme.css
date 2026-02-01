@@ -61,6 +61,8 @@
   --destructive-foreground: #ffffff;
   --border: #334155;
   --input: #334155;
+  --input-background: #334155;
+
   --ring: #8b5cf6;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -172,7 +174,9 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
+    /* background-color: var(--primary); */
   }
+
 
   input {
     font-size: var(--text-base);
