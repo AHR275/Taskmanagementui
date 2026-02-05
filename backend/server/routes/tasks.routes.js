@@ -1,88 +1,137 @@
 import express from "express";
 import pool from "../databases/db.js";
 import { fromBody, toTask } from "../models/tasks.model.js";
+ const TasksRoutes = express.Router();
 
+TasksRoutes.post("/", async (req, res) => {
+  try {
+    const {user_id} = req.body; // from auth middleware
 
-const TasksRouter = express.Router();
-// create a new task 
+    const {
+      title,
+      description,
+      difficulty,
+      importance,
+      category_id,
 
-TasksRouter.post("", async (req, res) => {
-    try {
-        
-        const t = fromBody(req.body);
-        
-        const result = await pool.query(
-            `INSERT INTO tasks
-            (title, description, difficulty, importance, category, schedule_type, due_time, recurrence, reminder, completed, completed_dates)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-            RETURNING *`,
-            [
-                t.title, t.description, t.difficulty, t.importance, t.category,
-                t.schedule_type, t.due_time, t.recurrence, t.reminder, t.completed, t.completed_dates
-            ]
-        );
-        
-            return res.status(201).json(toTask(result.rows[0]));
-        } catch (error) {
-            console.error(error.message)
-            
-        }
+      type,
+      due_at,
+      time_of_day,
+
+      recurrence_frequency,
+      recurrence_interval,
+      recurrence_by_weekday,
+      recurrence_by_monthday,
+      recurrence_start_date,
+      recurrence_anchor_date,
+
+      reminder
+    } = req.body;
+
+    const result = await pool.query(
+      `
+      INSERT INTO tasks (
+        user_id,
+        category_id,
+        title,
+        description,
+        difficulty,
+        importance,
+        type,
+        due_at,
+        time_of_day,
+        recurrence_frequency,
+        recurrence_interval,
+        recurrence_by_weekday,
+        recurrence_by_monthday,
+        recurrence_start_date,
+        recurrence_anchor_date,
+        reminder_enabled,
+        reminder_before_minutes
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,
+        $10,$11,$12,$13,$14,$15,$16,$17
+      )
+      RETURNING *
+      `,
+      [
+        user_id,
+        category_id,
+        title,
+        description,
+        difficulty,
+        importance,
+        type,
+        due_at ?? null,
+        time_of_day ?? null,
+        recurrence_frequency ?? null,
+        recurrence_interval ?? 0,
+        recurrence_by_weekday ?? null,
+        recurrence_by_monthday ?? null,
+        recurrence_start_date ?? null,
+        recurrence_anchor_date ?? null,
+        reminder?.enabled ?? false,
+        reminder?.enabled ? reminder.before_minutes : null,
+      ]
+    );
+
+    return res.status(201).json(result.rows[0]);
+  } catch (error) {
+     console.error("Create task error:", error);
+
+  return res.status(500).json({
+    error: "Failed to create task",
+    detail: error.message,
+    code: error.code,
+  });
+  }
 });
 
-// get all tasks 
-TasksRouter.get("", async (req, res) => {
+// get tasks
+TasksRoutes.post("/:user_id", async (req, res) => {
+  try {
+    const {user_id} = req.params; // from auth middleware
 
-    try {
-        
-        const result = await pool.query("SELECT * FROM tasks ORDER BY id DESC");
-        return res.json(result.rows.map(toTask));
-    } catch (err) {
-        console.error(err.message);
-    }
+;
+
+    const result = await pool.query(
+      `
+      SELECT  
+        user_id,
+        category_id,
+        title,
+        description,
+        difficulty,
+        importance,
+        type,
+        due_at,
+        time_of_day,
+        recurrence_frequency,
+        recurrence_interval,
+        recurrence_by_weekday,
+        recurrence_by_monthday,
+        recurrence_start_date,
+        recurrence_anchor_date,
+        reminder_enabled,
+        reminder_before_minutes
+       FROM tasks WHERE user_id=$1
+      `,
+      [
+        user_id,]
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+     console.error("Create task error:", error);
+
+  return res.status(500).json({
+    error: "Failed to create task",
+    detail: error.message,
+    code: error.code,
+  });
+  }
 });
 
 
-// update a task 
-TasksRouter.put("/:id", async (req, res) => {
-    try {
-    
-        const { id } = req.params;
-        const t = fromBody(req.body);  
-        const result = await pool.query(
-                `UPDATE tasks
-                SET title=$1, description=$2, difficulty=$3, importance=$4, category=$5,
-                    schedule_type=$6, due_time=$7, recurrence=$8, reminder=$9, completed=$10, completed_dates=$11
-                WHERE id=$12
-                RETURNING *`,
-                [
-                t.title, t.description, t.difficulty, t.importance, t.category,
-                t.schedule_type, t.due_time, t.recurrence, t.reminder, t.completed, t.completed_dates,
-                id
-                ]
-            );
-
-        res.json(toTask(result.rows[0]));
-    } catch (err) {
-        console.error(err.message);
-    }
-
-
-    
-});
-
-
-// delete  a task  
-TasksRouter.delete("/:id",async(req,res)=>{
-    try {
-        const {id} = req.params; 
-        const result = await pool.query("DELETE FROM tasks WHERE id=$1",[id]);
-        return res.json(result.rows.map(toTask));
-    } catch (err) {
-        console.error(err.message);
-    }
-});
-
-export default TasksRouter ; 
-
-
-
+export default TasksRoutes;

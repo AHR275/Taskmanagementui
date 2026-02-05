@@ -1,8 +1,20 @@
-import { useEffect,useState } from "react";
+import { useEffect,useState,useContext, Children } from "react";
+import { SidebarContext } from "../../App";
 import {  Edit2, Trash2 } from "lucide-react"
 
-export default function ListGroup({items,onSelectSection,onEdititem,onDeleteitem,selectedSection}){
-    const content = items.map((item) => {
+export default function ListGroup({children}){
+    const {
+
+      selectedSection,
+      onEditCategory, 
+     onDeleteCategory,
+      onSelectSection,
+      
+
+    } = useContext(SidebarContext);
+    const items= children;
+    // console.log("items:catego :=> ", items);
+    const content =items.length>=1? items.map((item) => {
               const isActive = selectedSection === item.id;
               return (
                 <div
@@ -26,14 +38,14 @@ export default function ListGroup({items,onSelectSection,onEdititem,onDeleteitem
                   </button>
                   <div className="flex gap-1  group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => onEdititem(item)}
+                      onClick={() => onEditCategory(item)}
                       className="p-1 hover:bg-accent rounded transition-colors"
                       aria-label="Edit item"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => onDeleteitem(item.id)}
+                      onClick={() => onDeleteCategory(item.id)}
                       className="p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
                       aria-label="Delete item"
                     >
@@ -42,7 +54,7 @@ export default function ListGroup({items,onSelectSection,onEdititem,onDeleteitem
                   </div>
                 </div>
               );
-            })
+            }):null; 
     return (<>
       {content}
        

@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 // import pool from "./db.js";
 import TasksRoutes from "./routes/tasks.routes.js";
 import UsersRoutes from "./routes/users.routes.js";
+import CategoriesRoutes from "./routes/categories.routes.js";
 import { requireAuth } from "./middleware/checkAuth.js";
 // import pool from "./db.js";
 
@@ -23,6 +24,7 @@ app.use(express.json());
 
 app.use("/tasks", TasksRoutes);
 app.use("/users", UsersRoutes);
+app.use("/categories", CategoriesRoutes);
 
 // check if user is already signed in 
 // app.post("/profile", requireAuth, async (req, res) => {

@@ -1,8 +1,19 @@
-import { useState,useEffect } from "react";
+import { useState,useEffect,useContext } from "react";
+
 import { Plus } from "lucide-react"
 import ListGroup from "./baseComps/listGroup";
+import { SidebarContext } from "../App";
 
-export default function Categories({categories,onSelectSection,onEdititem,onDeleteitem,onAddCategory,selectedSection}){
+
+export default function Categories(){
+
+
+    const {
+
+        onAddCategory,
+        categories
+        
+    }=useContext(SidebarContext)
     return (
     <div>
           <div className="flex items-center justify-between mb-2 px-2">
@@ -16,9 +27,13 @@ export default function Categories({categories,onSelectSection,onEdititem,onDele
             </button>
           </div>
           <div className="space-y-1">
-                <ListGroup items={categories} 
-                onSelectSection={onSelectSection} onEdititem={onEdititem}
-                selectedSection={selectedSection} onDeleteitem={onDeleteitem}/>
+          
+          
+                <ListGroup>
+                  {categories}
+                </ListGroup>
+          
+         
           </div>
         </div>
 

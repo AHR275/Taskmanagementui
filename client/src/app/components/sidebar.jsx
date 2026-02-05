@@ -1,6 +1,7 @@
 import { Calendar, CalendarDays, CalendarRange, CheckSquare,X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect , useContext} from 'react';
 import Categories from './categories';
+import { SidebarContext } from '../App'; 
 // import  { Category } from '../App';
 
 
@@ -14,16 +15,16 @@ const mainSections = [
 ];
 
 export function Sidebar({
-  categories,
-  selectedSection,
-  onSelectSection,
-  onAddCategory,
-  onEditCategory,
-  onDeleteCategory,
-  isSidebarOpen,
-  setIsSidebarOpen
-}) {
 
+}) {
+  const {
+ 
+    selectedSection,
+    onSelectSection,
+
+    isSidebarOpen,
+    setIsSidebarOpen,
+  } = useContext(SidebarContext);
 //   useEffect(() => {
 //   fetch("http://localhost:4000/health")
 //     .then(res => res.json())
@@ -84,10 +85,8 @@ export function Sidebar({
         </div>
 
         {/* Custom Categories */}
-          <Categories categories={categories} 
-              onSelectSection={onSelectSection} onEdititem={onEditCategory} 
-              onDeleteitem={onDeleteCategory} onAddCategory={onAddCategory}
-              selectedSection={selectedSection}
+          <Categories 
+
           ></Categories>
       </div>
     </aside>

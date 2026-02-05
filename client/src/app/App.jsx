@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { createContext, use, useState } from "react";
 import { Moon, Sun, Menu } from "lucide-react";
 import { Sidebar } from "./components/sidebar";
 import { TaskList } from "./components/task-list";
@@ -7,7 +7,11 @@ import { CategoryDialog } from "./components/category-dialog";
 // import SignUp from "./components/singUp";
 import Register from "./components/register";
 import IsAuth from "./js/Auth";
-import { useEffect } from "react";
+import { getCategories, getTasks } from "./js/userData";
+import { useEffect ,useContext} from "react";
+// import { getCategories } from "./js/Auth";
+export const SidebarContext = createContext(null);
+
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
@@ -21,48 +25,69 @@ export default function App() {
     name:'',
     avatar_url:''
   })
+  const [categories,setCategories]= useState([{}])
+  const [tasks,setTasks]=useState([{}]);
 
- useEffect(() => {
+  const [isCategoriesUpdated,setIsCategoriesUpdated]=useState(true);
+  const [isTasksUpdated,setIsTasksUpdated]=useState(true);
+
+
   async function checkAuth() {
 
-    const [isAuthed, userinfo] = await IsAuth();
+    const [isAuthed, userinfo ] = await IsAuth();
+    if(isAuthed){
 
-    if (isAuthed) {
-      console.log(isAuthed);
       setIsUser(true);
       setUser(userinfo);
     }
+
   }
-  console.log(user);
+  useEffect(() => {
 
-  checkAuth();
-}, []);
+    checkAuth();
+  }, []);
+
+useEffect(() => {
+  if (!isUser) return;
+
+  (async () => {
+    console.log(user);
+
+    const categoriesInfo = await getCategories(user.id);
+    const tasksInfo = await getTasks(user.id);
+    setCategories(categoriesInfo ?? []);
+    setTasks(tasksInfo ?? []);
+    console.log("categoriesInfo :>" , categoriesInfo);
+    console.log("taslsInfo :>" , tasksInfo);
+  })();
+  setIsCategoriesUpdated(true);
+  setIsTasksUpdated(true);
+}, [isUser, user.id,isCategoriesUpdated,isTasksUpdated]);
+
+  // const [categories, setCategories] = useState([
+  //   { id: "studying", name: "Studying", color: "#3b82f6", isDefault: false },
+  //   { id: "working", name: "Working", color: "#8b5cf6", isDefault: false },
+  //   { id: "health", name: "Health", color: "#10b981", isDefault: false },
+  // ]);
 
 
-
-  const [categories, setCategories] = useState([
-    { id: "studying", name: "Studying", color: "#3b82f6", isDefault: false },
-    { id: "working", name: "Working", color: "#8b5cf6", isDefault: false },
-    { id: "health", name: "Health", color: "#10b981", isDefault: false },
-  ]);
-
-  const [tasks, setTasks] = useState([
-    {
-      id: "1",
-      title: "Morning Meditation",
-      description: "Meditate for 10 minutes to start the day mindfully",
-      difficulty: "easy",
-      importance: "high",
-      category: "health",
-      scheduleType: "daily",
-      dueTime: "07:00",
-      recurrence: { pattern: "daily" },
-      reminder: { enabled: true, beforeMinutes: 15 },
-      completed: false,
-      completedDates: [],
-    },
-    // ...rest of initial tasks
-  ]);
+  // const [tasks, setTasks] = useState([
+  //   {
+  //     id: "1",
+  //     title: "Morning Meditation",
+  //     description: "Meditate for 10 minutes to start the day mindfully",
+  //     difficulty: "easy",
+  //     importance: "high",
+  //     category: "health",
+  //     scheduleType: "daily",
+  //     dueTime: "07:00",
+  //     recurrence: { pattern: "daily" },
+  //     reminder: { enabled: true, beforeMinutes: 15 },
+  //     completed: false,
+  //     completedDates: [],
+  //   },
+  //   // ...rest of initial tasks
+  // ]);
 
   const [selectedSection, setSelectedSection] = useState("today");
   const [selectedDate, setSelectedDate] = useState(
@@ -79,11 +104,39 @@ export default function App() {
     document.documentElement.classList.toggle("dark");
   };
 
-  const handleAddTask = (task) => {
-    const newTask = { ...task, id: Date.now().toString() };
-    setTasks((prev) => [...prev, newTask]);
-    setIsTaskDialogOpen(false);
-  };
+  
+    const handleAddTask = async (task) => {
+      task.user_id= user.id; 
+      try {
+        const res = await fetch("http://localhost:5122/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // important for auth
+          body: JSON.stringify(task),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Create task failed:", data);
+          return;
+        }
+
+        console.log("Task created:", data);
+
+        // optional: update local state instead of reload
+        // window.location.reload();
+        setIsTasksUpdated(false);
+      } catch (err) {
+        console.error("Submit task error:", err);
+      }
+
+      setIsTaskDialogOpen(false);
+    };
+
+  
 
   const handleEditTask = (task) => {
     if (!editingTask) return;
@@ -127,11 +180,17 @@ export default function App() {
   const closeSignupDialog= () =>{
     setIsSignupDialogOpen(false);
   };
+  const onAddCategory=()=>{
+    if(isUser)setIsCategoryDialogOpen(true);
+    else setIsSignupDialogOpen(true);
+    
+  }
   const handleAddCategory = (category) => {
     const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
     setCategories((prev) => [...prev, newCategory]);
     setIsCategoryDialogOpen(false);
   };
+
 
   const handleEditCategory = (category) => {
     if (!editingCategory) return;
@@ -148,13 +207,38 @@ export default function App() {
     setIsCategoryDialogOpen(false);
   };
 
-  const handleDeleteCategory = (id) => {
-    const hasTasks = tasks.some((t) => t.category === id);
-    if (hasTasks) {
-      alert("Cannot delete category with existing tasks.");
-      return;
+  const handleDeleteCategory = async (id) => {
+    // e.preventDefault();
+    // if (!name.trim()) return;
+    try{
+ 
+
+        // const id= initialCategory.id;
+        // const body = { name, color};
+        const res = await fetch(`http://localhost:5122/categories/delete/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setErrors(data.CategoryErrors || {});
+          return;
+        }
+        // console.log("Success:", data);
+
+      
+     setIsCategoriesUpdated(false);
+          // onClose();
+      // window.location.reload();
+    } 
+    catch (err) {
+            console.error("Fetch failed:", err);
     }
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+       
+    setIsCategoriesUpdated(false)
+  
   };
 
   const openEditCategoryDialog = (category) => {
@@ -192,21 +276,30 @@ export default function App() {
     window.location.reload();
   };
 
+
   return (
     <div className={isDark ? "dark" : ""}>
       <div className="min-h-screen bg-background text-foreground overflow-hidden ">
+        {/* {console.log(categories) } */}
         {/* Sidebar (off-canvas) */}
+          <SidebarContext.Provider value={{
+            isSidebarOpen:isSidebarOpen,
+            categories:categories,
+            selectedSection:selectedSection,
+            setIsSidebarOpen:setIsSidebarOpen,
+            onSelectSection:setSelectedSection,
+            onEditCategory:openEditCategoryDialog,
+            onDeleteCategory:handleDeleteCategory,
+            onAddCategory:onAddCategory,
+            isCategoriesUpdated:isCategoriesUpdated,
+            setIsCategoriesUpdated:setIsCategoriesUpdated,
 
-          <Sidebar 
-            isSidebarOpen={isSidebarOpen}
-            categories={categories}
-            selectedSection={selectedSection}
-            setIsSidebarOpen={setIsSidebarOpen}
-            onSelectSection={setSelectedSection}
-            onAddCategory={() => setIsCategoryDialogOpen(true)}
-            onEditCategory={openEditCategoryDialog}
-            onDeleteCategory={handleDeleteCategory}
-          />
+          }}>
+
+            <Sidebar 
+        
+            />
+          </SidebarContext.Provider>
       
 
         {/* Backdrop */}
@@ -320,6 +413,8 @@ export default function App() {
           onClose={closeCategoryDialog}
           onSubmit={editingCategory ? handleEditCategory : handleAddCategory}
           initialCategory={editingCategory || undefined}
+          user_id={user.id}
+          setIsCategoriesUpdated={setIsCategoriesUpdated}
         />
         <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true}></Register>
       </div>

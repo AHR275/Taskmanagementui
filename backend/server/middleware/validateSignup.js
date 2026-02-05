@@ -1,4 +1,5 @@
 // middleware/validateSignup.js
+// import { use } from "react";
 import {isValidCloudinaryImage}  from "./validateAvatar.js";
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/; // 3-20, letters/numbers/underscore
@@ -8,17 +9,19 @@ export function validateSignup(req, res, next) {
   const errors = {};
 
   // normalize
-  const name = (req.body.name ?? "").trim().toLowerCase();
+  const name = (req.body.name ?? "").trim();
   const username = (req.body.username ?? "").trim();
   const email = (req.body.email ?? "").trim().toLowerCase();
   const password = req.body.password ?? "";
 
   // name
   if (!name) errors.name = "Name is required";
+  // else if(name.length>25) errors.name="Name is too long";
   else if (!NAME_RE.test(name)) errors.name = "Name must be 2-25 letters (spaces, ' and - allowed)";
-
+  
   // username
   if (!username) errors.username = "Username is required";
+  // else if(username.length>20) errors.name="Username is too long";
   else if (!USERNAME_RE.test(username)) errors.username = "Username must be 3-20 (letters, numbers, _ only)";
 
   // email (simple but effective)

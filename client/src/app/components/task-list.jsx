@@ -1,8 +1,92 @@
-import { Plus } from 'lucide-react';
-import { TaskCard } from './task-card';
-import { DateNavigation } from './date-navigation';
-import { MonthlyRateTracker } from './monthly-rate-tracker';
-// import  { Task, Category } from '../App';
+import { Plus } from "lucide-react";
+import { TaskCard } from "./task-card";
+import { DateNavigation } from "./date-navigation";
+import { MonthlyRateTracker } from "./monthly-rate-tracker";
+
+function toDateOnlyISO(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function parseISODate(dateStr) {
+  // dateStr: 'YYYY-MM-DD' (local midnight to avoid timezone shifting)
+  return new Date(`${dateStr}T00:00:00`);
+}
+
+function isoFromTimestamptz(ts) {
+  // returns YYYY-MM-DD from a timestamptz string
+  const d = new Date(ts);
+  return toDateOnlyISO(d);
+}
+
+// Map JS day (0 Sun..6 Sat) to DB weekday (1 Mon..7 Sun)
+function jsDayToDbWeekday(jsDay) {
+  return jsDay === 0 ? 7 : jsDay; // Sun->7, Mon->1, ..., Sat->6
+}
+
+function isOnOrAfter(dateStr, startDateStr) {
+  if (!startDateStr) return true;
+  return dateStr >= startDateStr; // ISO date strings compare safely
+}
+
+function daysBetweenISO(a, b) {
+  // a, b are 'YYYY-MM-DD'
+  const da = parseISODate(a);
+  const db = parseISODate(b);
+  const ms = db.getTime() - da.getTime();
+  return Math.floor(ms / (24 * 60 * 60 * 1000));
+}
+
+function startOfWeekISO(dateStr) {
+  // Monday-start week anchor (fits DB weekday 1..7)
+  const d = parseISODate(dateStr);
+  const jsDay = d.getDay(); // 0..6 (Sun..Sat)
+  // convert to Monday-based offset: Mon=0..Sun=6
+  const mondayOffset = jsDay === 0 ? 6 : jsDay - 1;
+  d.setDate(d.getDate() - mondayOffset);
+  return toDateOnlyISO(d);
+}
+
+function monthsBetweenISO(a, b) {
+  const da = parseISODate(a);
+  const db = parseISODate(b);
+  return (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth());
+}
+
+function getAnchorDate(task) {
+  // best anchor order:
+  // 1) recurrence_anchor_date
+  // 2) recurrence_start_date
+  // 3) (fallback) due_at date if exists
+  return (
+    task.recurrence_anchor_date ||
+    task.recurrence_start_date ||
+    (task.due_at ? isoFromTimestamptz(task.due_at) : null)
+  );
+}
+
+function intervalOr1(task) {
+  const n = Number(task.recurrence_interval);
+  return Number.isFinite(n) && n >= 1 ? n : 1;
+}
+
+
+function normalizeISODate(value) {
+  // Always return YYYY-MM-DD or null
+  if (!value) return null;
+
+  // Already correct
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // Date object or other parseable string
+  const d = value instanceof Date ? value : new Date(value);
+  if (isNaN(d.getTime())) return null;
+
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 
 export function TaskList({
@@ -16,134 +100,130 @@ export function TaskList({
   onDeleteTask,
   onToggleComplete,
 }) {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const currentDayOfWeek = today.getDay();
-  const currentDayOfMonth = today.getDate();
+  const todayStr = toDateOnlyISO(new Date());
+  const selectedDateISO = normalizeISODate(selectedDate);
 
-  // Helper function to check if a task is due on a specific date
+  // ✅ DB-compatible + interval-aware: check if task is due on a specific date
   const isTaskDueOnDate = (task, dateStr) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    const dayOfWeek = date.getDay();
-    const dayOfMonth = date.getDate();
-
     // One-time tasks
-    if (task.scheduleType === 'one-time') {
-      return task.dueDate === dateStr;
+    if (task.type === "one_time") {
+      if (!task.due_at) return false;
+      return isoFromTimestamptz(task.due_at) === dateStr;
     }
 
-    // Daily tasks
-    if (task.scheduleType === 'daily') {
-      return true;
-    }
+    // Recurring tasks
+    if (task.type === "recurring") {
+      // gate by start/end date (optional)
+      if (!isOnOrAfter(dateStr, task.recurrence_start_date)) return false;
+      if (task.recurrence_end_date && dateStr > task.recurrence_end_date) return false;
 
-    // Weekly tasks
-    if (task.scheduleType === 'weekly' && task.recurrence?.daysOfWeek) {
-      return task.recurrence.daysOfWeek.includes(dayOfWeek);
-    }
+      const interval = intervalOr1(task);
+      const anchor = getAnchorDate(task);
+      if (!anchor) return false;
 
-    // Monthly tasks
-    if (task.scheduleType === 'monthly' && task.recurrence?.daysOfMonth) {
-      return task.recurrence.daysOfMonth.includes(dayOfMonth);
-    }
+      const date = parseISODate(dateStr);
+      const dbWeekday = jsDayToDbWeekday(date.getDay()); // 1..7
+      const dayOfMonth = date.getDate(); // 1..31
 
-    // Custom interval tasks
-    if (task.scheduleType === 'custom' && task.recurrence?.pattern === 'interval') {
-      // This would need more complex logic with a start date
-      // For now, simplified implementation
-      return true;
+      // Daily: every N days from anchor
+      if (task.recurrence_frequency === "daily") {
+        const diffDays = daysBetweenISO(anchor, dateStr);
+        return diffDays >= 0 && diffDays % interval === 0;
+      }
+
+      // Weekly: weekday must match + every N weeks from anchor week
+      if (task.recurrence_frequency === "weekly") {
+        const days = Array.isArray(task.recurrence_by_weekday) ? task.recurrence_by_weekday : [];
+        if (days.includes(dbWeekday)) return true;
+
+        const anchorWeekStart = startOfWeekISO(anchor);
+        const thisWeekStart = startOfWeekISO(dateStr);
+        const diffWeeks = Math.floor(daysBetweenISO(anchorWeekStart, thisWeekStart) / 7);
+
+        return diffWeeks >= 0 && diffWeeks % interval === 0;
+      }
+
+      // Monthly: day-of-month must match + every N months from anchor month
+      if (task.recurrence_frequency === "monthly") {
+        const days = Array.isArray(task.recurrence_by_monthday) ? task.recurrence_by_monthday : [];
+        if (days.includes(dayOfMonth)) return true;
+
+        const diffMonths = monthsBetweenISO(anchor, dateStr);
+        return diffMonths >= 0 && diffMonths % interval === 0;
+      }
+
+      return false;
     }
 
     return false;
   };
 
-  // Helper function to check if a task is due today
-  const isTaskDueToday = (task) => {
-    return isTaskDueOnDate(task, todayStr);
+  // "Undone" check (minimal — adjust later when you move completion to DB)
+  const isUndoneForToday = (task) => {
+    if (task.type === "one_time") return !task.completed;
+
+    // If you're still using old client-side completedDates:
+    if (Array.isArray(task.completedDates)) {
+      return !task.completedDates.includes(todayStr);
+    }
+
+    return true;
   };
 
-  // Helper function to check if a task is weekly
-  const isWeeklyTask = (task) => {
-    return task.scheduleType === 'weekly' ;
-  };
+  const isWeeklyTask = (task) => task.type === "recurring" && task.recurrence_frequency === "weekly";
+  const isMonthlyTask = (task) => task.type === "recurring" && task.recurrence_frequency === "monthly";
+  const isInCategory = (task, categoryId) => task.category_id === categoryId;
+  // const selectedDateISO = normalizeISODate(selectedDate);
 
-  // Helper function to check if a task is monthly
-  const isMonthlyTask = (task) => {
-    return task.scheduleType === 'monthly'  ;
-  };
-
-  // Filter tasks based on selected section
   const filteredTasks = tasks.filter((task) => {
     switch (selectedSection) {
-      case 'today':
-        return isTaskDueOnDate(task, selectedDate);
-      case 'weekly':
+      case "today":
+        return isTaskDueOnDate(task, selectedDateISO);
+
+      case "weekly":
         return isWeeklyTask(task);
-      case 'monthly':
+
+      case "monthly":
         return isMonthlyTask(task);
-      case 'undone':
-        return !task.completed || (task.scheduleType !== 'one-time' && !task.completedDates.includes(todayStr));
+
+      case "undone":
+        return isTaskDueOnDate(task, todayStr) && isUndoneForToday(task);
+
       default:
-        // Custom category
-        return task.category === selectedSection;
+        // custom category id
+        return isInCategory(task, selectedSection);
     }
   });
-
-  // Get section title
-  const getSectionTitle = () => {
-    switch (selectedSection) {
-      case 'today':
-        return 'Today Tasks';
-      case 'weekly':
-        return 'Weekly Tasks';
-      case 'monthly':
-        return 'Monthly Tasks';
-      case 'undone':
-        return 'Undone Tasks';
-      default:
-        const category = categories.find(c => c.id === selectedSection);
-        return category?.name || 'Tasks';
-    }
-  };
 
   return (
     <div className="px-6 ">
       <div className="max-w-4xl mx-auto">
-        {/* Show Monthly Rate Tracker if in monthlyRate section */}
-        {selectedSection === 'monthlyRate' ? (
+        {selectedSection === "monthlyRate" ? (
           <MonthlyRateTracker tasks={tasks} />
         ) : (
           <>
-            <div className="flex items-center justify-between ">
-              {/* <h2 className="text-2xl font-semibold">{getSectionTitle()}</h2> */}
+            <div className="flex items-center justify-between ">{/* keep layout */}</div>
 
-            </div>
-
-            {/* Date Navigation - only show for "today" section */}
-            {selectedSection === 'today' && (
+            {selectedSection === "today" && (
               <DateNavigation selectedDate={selectedDate} onSelectDate={onSelectDate} />
             )}
 
-            {/* Task List */}
             <div className="space-y-4 ">
-              <div className='flex justify-end'>
-
-              <button
-                onClick={onAddTask}
-                className="flex  items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity"
-                style={{top:"20px", right:"20px"}}
-              >
-                <Plus className="w-5 h-5" />
-                Add Task
-              </button>
+              <div className="flex justify-end">
+                <button
+                  onClick={onAddTask}
+                  className="flex  items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity"
+                  style={{ top: "20px", right: "20px" }}
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Task
+                </button>
               </div>
+
               {filteredTasks.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-lg">
                   <p>No tasks in this section yet.</p>
-                  <button
-                    onClick={onAddTask}
-                    className="mt-4 text-primary hover:underline"
-                  >
+                  <button onClick={onAddTask} className="mt-4 text-primary hover:underline">
                     Add your first task
                   </button>
                 </div>
