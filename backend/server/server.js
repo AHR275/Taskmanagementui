@@ -37,6 +37,15 @@ app.use("/categories", CategoriesRoutes);
 
 //   return res.json(user.rows[0]);
 // });
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ ok: true, db: "connected" });
+  } catch (err) {
+    res.status(500).json({ ok: false, db: "not connected", error: err.message });
+  }
+});
+
 
 const PORT = process.env.PORT ||5122;
 app.listen(PORT,()=>{
