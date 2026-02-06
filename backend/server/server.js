@@ -16,7 +16,7 @@ const app = express();
 app.use(cookieParser());
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  // origin: "http://localhost:5173",
   credentials: true,
 }));
 
@@ -38,7 +38,7 @@ app.use("/categories", CategoriesRoutes);
 //   return res.json(user.rows[0]);
 // });
 
-
-app.listen(5122,()=>{
+const PORT = process.env.PORT ||5122;
+app.listen(PORT,()=>{
     console.log("the server is running on port 5122 ........")
 })

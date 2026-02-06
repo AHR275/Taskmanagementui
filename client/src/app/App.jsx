@@ -9,6 +9,7 @@ import Register from "./components/register";
 import IsAuth from "./js/Auth";
 import { getCategories, getTasks } from "./js/userData";
 import { useEffect ,useContext} from "react";
+import { SERVER_URL } from "./js/config";
 // import { getCategories } from "./js/Auth";
 export const SidebarContext = createContext(null);
 
@@ -108,7 +109,7 @@ useEffect(() => {
     const handleAddTask = async (task) => {
       task.user_id= user.id; 
       try {
-        const res = await fetch("http://localhost:5122/tasks", {
+        const res = await fetch(`${SERVER_URL}/tasks`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -185,27 +186,27 @@ useEffect(() => {
     else setIsSignupDialogOpen(true);
     
   }
-  const handleAddCategory = (category) => {
-    const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
-    setCategories((prev) => [...prev, newCategory]);
-    setIsCategoryDialogOpen(false);
-  };
+  // const handleAddCategory = (category) => {
+  //   const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
+  //   setCategories((prev) => [...prev, newCategory]);
+  //   setIsCategoryDialogOpen(false);
+  // };
 
 
-  const handleEditCategory = (category) => {
-    if (!editingCategory) return;
+  // const handleEditCategory = (category) => {
+  //   if (!editingCategory) return;
 
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === editingCategory.id
-          ? { ...category, id: editingCategory.id, isDefault: editingCategory.isDefault }
-          : c
-      )
-    );
+  //   setCategories((prev) =>
+  //     prev.map((c) =>
+  //       c.id === editingCategory.id
+  //         ? { ...category, id: editingCategory.id, isDefault: editingCategory.isDefault }
+  //         : c
+  //     )
+  //   );
 
-    setEditingCategory(null);
-    setIsCategoryDialogOpen(false);
-  };
+  //   setEditingCategory(null);
+  //   setIsCategoryDialogOpen(false);
+  // };
 
   const handleDeleteCategory = async (id) => {
     // e.preventDefault();
@@ -215,7 +216,7 @@ useEffect(() => {
 
         // const id= initialCategory.id;
         // const body = { name, color};
-        const res = await fetch(`http://localhost:5122/categories/delete/${id}`, {
+        const res = await fetch(`${SERVER_URL}/categories/delete/${id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // body: JSON.stringify(body),
@@ -255,7 +256,7 @@ useEffect(() => {
     e.preventDefault();
     try{
 
-            const res = await fetch("http://localhost:5122/users/logout", {
+            const res = await fetch(`${SERVER_URL}/users/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -275,6 +276,42 @@ useEffect(() => {
     }
     window.location.reload();
   };
+
+  const handleAddCategory= async()=>{
+  
+    const body = { name, color,user_id };
+    const res = await fetch(`${SERVER_URL}/categories`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setErrors(data.CategoryErrors || {});
+      return;
+    }
+    console.log("Success:", data);  
+
+  }
+
+  const handleEditCategory= async(initialCategory)=>{
+  
+    const id= initialCategory.id;
+    const body = { name, color};
+    const res = await fetch(`${SERVER_URL}/categories/update/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });   
+    const data = await res.json();
+    if (!res.ok) {
+      setErrors(data.CategoryErrors || {});
+      return;
+    }
+    console.log("Success:", data);
+
+  }
+
 
 
   return (

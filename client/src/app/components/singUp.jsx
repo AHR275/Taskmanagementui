@@ -1,5 +1,6 @@
 import { useState,useEffect, useRef } from "react";
 import uploadAvatar from "../js/uploadAvatar";
+import { SERVER_URL } from "../js/config";
 
 
 
@@ -31,7 +32,7 @@ export default function SignUp({onClose}){
         try {
             const body = { name, username, email, password,avatar_url };
 
-            const res = await fetch("http://localhost:5122/users", {
+            const res = await fetch(`${SERVER_URL}/users`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),

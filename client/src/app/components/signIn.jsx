@@ -1,4 +1,5 @@
 import { useState,useEffect, useRef } from "react";
+import { SERVER_URL } from "../js/config";
 
 
 
@@ -19,7 +20,7 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     try{
 
-            const res = await fetch("http://localhost:5122/users/login", {
+            const res = await fetch(`${SERVER_URL}/users/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

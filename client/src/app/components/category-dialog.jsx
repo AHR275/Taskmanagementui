@@ -7,7 +7,9 @@ const presetColors = [
   '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e',
 ];
 
-export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory , user_id,setIsCategoriesUpdated}) {
+export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory , user_id,setIsCategoriesUpdated,
+  handleAddCategory, handleEditCategory
+}) {
   const [name, setName] = useState('');
   const [color, setColor] = useState("#8b5cf6");
   const [errors,setErrors]=useState({})
@@ -22,54 +24,28 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory , us
     }
   }, [initialCategory, isOpen]);
 
-  const handleSubmit = async(e) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    try{
-      if(!initialCategory){
-
-        const body = { name, color,user_id };
-        const res = await fetch("http://localhost:5122/categories", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          setErrors(data.CategoryErrors || {});
-          return;
+    const handleSubmit = async(e) => {
+      e.preventDefault();
+      if (!name.trim()) return;
+      try{
+        if(!initialCategory){
+          return await handleAddCategory();
+  
+        }else{
+          return await handleEditCategory(initialCategory);
+  
         }
-        console.log("Success:", data);
-
-      }else{
-        const id= initialCategory.id;
-        const body = { name, color};
-        const res = await fetch(`http://localhost:5122/categories/update/${id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          setErrors(data.CategoryErrors || {});
-          return;
-        }
-        console.log("Success:", data);
-
+       setIsCategoriesUpdated(false);
+            // onClose();
+        // window.location.reload();
+      } 
+      catch (err) {
+              console.error("Fetch failed:", err);
       }
-     setIsCategoriesUpdated(false);
-          // onClose();
-      // window.location.reload();
-    } 
-    catch (err) {
-            console.error("Fetch failed:", err);
-    }
-
-    onClose();
-        
-  };
+  
+      onClose();
+          
+    };
 
   if (!isOpen) return null;
 
