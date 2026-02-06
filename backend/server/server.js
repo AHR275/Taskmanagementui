@@ -17,11 +17,22 @@ const app = express();
 
 app.use(cookieParser());
 
-app.use(cors({
-  // origin: "http://localhost:5173",
-  credentials: true,
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://taskmanagementui-client.onrender.com",
+];
 
+app.use(cors({
+  origin: (origin, cb) => {
+    // يسمح لطلبات السيرفر-لسيرفر أو أدوات مثل curl بدون origin
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 
 app.use("/tasks", TasksRoutes);
