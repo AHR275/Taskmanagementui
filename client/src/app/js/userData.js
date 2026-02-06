@@ -1,6 +1,7 @@
+import { SERVER_URL } from "./config";
 export async function getCategories(user_id) {
   try {
-    const res = await fetch(`http://localhost:5122/categories/${user_id}`, {
+    const res = await fetch(`${SERVER_URL}/categories/${user_id}`, {
       method: "POST",
       credentials: "include",
     });
@@ -25,7 +26,7 @@ export async function getCategories(user_id) {
 
 export async function getTasks(user_id) {
   try {
-    const res = await fetch(`http://localhost:5122/tasks/${user_id}`, {
+    const res = await fetch(`${SERVER_URL}/tasks/${user_id}`, {
       method: "POST",
       credentials: "include",
     });
