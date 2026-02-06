@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-   base: "/Taskmanagementui/",
+   base: process.env.VITE_BASE_PATH || "/",
   resolve: {
     alias: {
       // Alias @ to the src directory
