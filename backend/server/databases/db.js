@@ -1,24 +1,12 @@
-import POOL  from "pg";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-// import { fileURLToPath } from "url";
+import pg from "pg";
 
-const Pool = POOL.Pool; 
+const { Pool } = pg;
 
-// needed if you're using ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config({
-  path: path.resolve(__dirname, "../../process.env"),
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
-
-const dbConfig = JSON.parse(process.env.DB_CONFIG);
-// console.log(dbConfig);
-const pool = new Pool(dbConfig);
-
-
-
-export default pool; 
+export default pool;
