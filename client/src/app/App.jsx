@@ -277,7 +277,7 @@ useEffect(() => {
     window.location.reload();
   };
 
-  const handleAddCategory= async()=>{
+  const handleAddCategory= async(name,color,user_id)=>{
   
     const body = { name, color,user_id };
     const res = await fetch(`${SERVER_URL}/categories`, {
@@ -294,7 +294,7 @@ useEffect(() => {
 
   }
 
-  const handleEditCategory= async(initialCategory)=>{
+  const handleEditCategory= async(initialCategory,name,color)=>{
   
     const id= initialCategory.id;
     const body = { name, color};

@@ -29,10 +29,10 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory , us
       if (!name.trim()) return;
       try{
         if(!initialCategory){
-          return await handleAddCategory();
+          return await handleAddCategory(name,color,user_id);
   
         }else{
-          return await handleEditCategory(initialCategory);
+          return await handleEditCategory(initialCategory,name,color);
   
         }
        setIsCategoriesUpdated(false);
