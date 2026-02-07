@@ -448,7 +448,9 @@ useEffect(() => {
         <CategoryDialog
           isOpen={isCategoryDialogOpen}
           onClose={closeCategoryDialog}
-          onSubmit={editingCategory ? handleEditCategory : handleAddCategory}
+          // onSubmit={editingCategory ? handleEditCategory : handleAddCategory}
+          handleAddCategory={handleAddCategory}
+          handleEditCategory={handleEditCategory}
           initialCategory={editingCategory || undefined}
           user_id={user.id}
           setIsCategoriesUpdated={setIsCategoriesUpdated}
