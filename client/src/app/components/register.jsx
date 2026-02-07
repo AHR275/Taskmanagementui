@@ -3,7 +3,7 @@ import SignUp from "./singUp";
 import SignIn from "./signIn";
 
 
-export default function Register({isOpen , onClose,isSignin }){
+export default function Register({isOpen , onClose,isSignin,setIsLoading }){
     if(!isOpen)return null;
 
     const  [isSigninCopy,setIsSigninCopy]= useState(isSignin);
@@ -32,8 +32,8 @@ export default function Register({isOpen , onClose,isSignin }){
                     <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                 </button>
             </div>
-            {isSigninCopy?  <SignIn onClose={onClose}></SignIn>:
-                        <SignUp onClose={onClose}></SignUp>
+            {isSigninCopy?  <SignIn setIsLoading={setIsLoading} onClose={onClose}></SignIn>:
+                            <SignUp setIsLoading={setIsLoading} onClose={onClose}></SignUp>
             }
 
             <button className="flex  items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2 hover:opacity-90 transition-opacity" aria-label="Toggle Dialoge"

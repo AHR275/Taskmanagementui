@@ -4,6 +4,7 @@ import { Sidebar } from "./components/sidebar";
 import { TaskList } from "./components/task-list";
 import { TaskDialog } from "./components/task-dialog";
 import { CategoryDialog } from "./components/category-dialog";
+import LoadingScreen from "./components/loadingScreen";
 // import SignUp from "./components/singUp";
 import Register from "./components/register";
 import IsAuth from "./js/Auth";
@@ -12,11 +13,13 @@ import { useEffect ,useContext} from "react";
 import { SERVER_URL } from "./js/config";
 // import { getCategories } from "./js/Auth";
 export const SidebarContext = createContext(null);
+export const TasksContext   = createContext(null)
 
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isUser,setIsUser]=useState(false)
   const [user,setUser]=useState({
@@ -107,6 +110,7 @@ useEffect(() => {
 
   
     const handleAddTask = async (task) => {
+      setIsLoading(true);
       task.user_id= user.id; 
       try {
         const res = await fetch(`${SERVER_URL}/tasks`, {
@@ -132,24 +136,89 @@ useEffect(() => {
         setIsTasksUpdated(false);
       } catch (err) {
         console.error("Submit task error:", err);
+      }finally{
+        setIsLoading(false);
+        setIsTaskDialogOpen(false);
       }
 
-      setIsTaskDialogOpen(false);
     };
 
   
 
-  const handleEditTask = (task) => {
-    if (!editingTask) return;
-    setTasks((prev) =>
-      prev.map((t) => (t.id === editingTask.id ? { ...task, id: t.id } : t))
-    );
-    setEditingTask(null);
-    setIsTaskDialogOpen(false);
+  const handleEditTask = async (task) => {
+    setIsLoading(true);
+
+    const id= task.id;
+    console.log(id); 
+    try {
+        const res = await fetch(`${SERVER_URL}/tasks/update/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // important for auth
+          body: JSON.stringify(task),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Update task failed:", data);
+          // console.error("remidnder :", task.reminder , typeof(task.reminder.before_minutes));
+          return;
+        }
+
+        console.log("Task updated:", data);
+
+        // optional: update local state instead of reload
+        // window.location.reload();
+        setIsTasksUpdated(false);
+      } catch (err) {
+        console.error("Submit task error:", err);
+      }finally{ 
+        setIsLoading(false);
+        setEditingTask(null);
+        setIsTaskDialogOpen(false);
+      }
+
+      // setIsTaskDialogOpen(false);
   };
 
-  const handleDeleteTask = (id) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+  const handleDeleteTask = async(task) => {
+    const id= task.id;
+    console.log(id); 
+    try {
+        const res = await fetch(`${SERVER_URL}/tasks/delete/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // important for auth
+          body: JSON.stringify(task),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("delete task failed:", data);
+          // console.error("remidnder :", task.reminder , typeof(task.reminder.before_minutes));
+          return;
+        }
+
+        console.log("Task deleted:", data);
+
+        // optional: update local state instead of reload
+        // window.location.reload();
+        setIsTasksUpdated(false);
+      } catch (err) {
+        console.error("Submit task error:", err);
+      }finally{
+        setIsLoading(false)
+      }
+
+      // setIsTaskDialogOpen(false);
+      // setEditingTask(null);
+      // setIsTaskDialogOpen(false);
   };
 
   const handleToggleComplete = (id) => {
@@ -186,30 +255,16 @@ useEffect(() => {
     else setIsSignupDialogOpen(true);
     
   }
-  // const handleAddCategory = (category) => {
-  //   const newCategory = { ...category, id: Date.now().toString(), isDefault: false };
-  //   setCategories((prev) => [...prev, newCategory]);
-  //   setIsCategoryDialogOpen(false);
-  // };
-
-
-  // const handleEditCategory = (category) => {
-  //   if (!editingCategory) return;
-
-  //   setCategories((prev) =>
-  //     prev.map((c) =>
-  //       c.id === editingCategory.id
-  //         ? { ...category, id: editingCategory.id, isDefault: editingCategory.isDefault }
-  //         : c
-  //     )
-  //   );
-
-  //   setEditingCategory(null);
-  //   setIsCategoryDialogOpen(false);
-  // };
+  const onAddTask=()=>{
+    if(isUser)setIsTaskDialogOpen(true);
+    else setIsSignupDialogOpen(true);
+    
+  }
+ 
 
   const handleDeleteCategory = async (id) => {
     // e.preventDefault();
+    setIsLoading(true);
     // if (!name.trim()) return;
     try{
  
@@ -236,6 +291,8 @@ useEffect(() => {
     } 
     catch (err) {
             console.error("Fetch failed:", err);
+    }finally{
+        setIsLoading(false)
     }
        
     setIsCategoriesUpdated(false)
@@ -254,6 +311,7 @@ useEffect(() => {
 
   const handleLogout= async(e)=>{
     e.preventDefault();
+    setIsLoading(true);
     try{
 
             const res = await fetch(`${SERVER_URL}/users/logout`, {
@@ -273,8 +331,10 @@ useEffect(() => {
         console.log("Login success:", data);
     }catch(err){
         console.error(err.message);
+    }finally{
+        setIsLoading(false)
+        window.location.reload();
     }
-    window.location.reload();
   };
 
   const handleAddCategory= async(name,color,user_id)=>{
@@ -312,11 +372,15 @@ useEffect(() => {
 
   }
 
+  
+
 
 
   return (
     <div className={isDark ? "dark" : ""}>
       <div className="min-h-screen bg-background text-foreground overflow-hidden ">
+      
+        <LoadingScreen show={isLoading} />
         {/* {console.log(categories) } */}
         {/* Sidebar (off-canvas) */}
           <SidebarContext.Provider value={{
@@ -422,17 +486,20 @@ useEffect(() => {
 
           {/* Content */}
           <main id="main-container" className="flex-1 overflow-y-auto ovverflow-x-hidden">
-            <TaskList
-              tasks={tasks}
-              categories={categories}
-              selectedSection={selectedSection}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-              onAddTask={() => setIsTaskDialogOpen(true)}
-              onEditTask={openEditDialog}
-              onDeleteTask={handleDeleteTask}
-              onToggleComplete={handleToggleComplete}
-            />
+            <TasksContext.Provider value={{
+              tasks:tasks,
+              categories:categories,
+              selectedSection:selectedSection,
+              selectedDate:selectedDate,
+              onSelectDate:setSelectedDate,
+              onAddTask:onAddTask,
+              onEditTask:openEditDialog,
+              onDeleteTask:handleDeleteTask,
+              onToggleComplete:handleToggleComplete,
+            }}>
+
+              <TaskList/>
+            </TasksContext.Provider>
           </main>
         </div>
 
@@ -443,6 +510,7 @@ useEffect(() => {
           onSubmit={editingTask ? handleEditTask : handleAddTask}
           initialTask={editingTask || undefined}
           categories={categories}
+          // setIsLoading={setIsLoading}
         />
 
         <CategoryDialog
@@ -455,7 +523,7 @@ useEffect(() => {
           user_id={user.id}
           setIsCategoriesUpdated={setIsCategoriesUpdated}
         />
-        <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true}></Register>
+        <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true} setIsLoading={setIsLoading}></Register>
       </div>
 
     </div>

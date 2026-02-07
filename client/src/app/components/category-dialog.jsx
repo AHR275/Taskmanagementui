@@ -27,23 +27,27 @@ export function CategoryDialog({ isOpen, onClose, onSubmit, initialCategory , us
     const handleSubmit = async(e) => {
       e.preventDefault();
       if (!name.trim()) return;
+  
+      onClose();
       try{
         if(!initialCategory){
           return await handleAddCategory(name,color,user_id);
   
         }else{
           return await handleEditCategory(initialCategory,name,color);
-  
+          
         }
-       setIsCategoriesUpdated(false);
-            // onClose();
+        // onClose();
         // window.location.reload();
       } 
       catch (err) {
-              console.error("Fetch failed:", err);
+        console.error("Fetch failed:", err);
+      }finally{
+        setIsCategoriesUpdated(false);
+
       }
-  
-      onClose();
+
+
           
     };
 

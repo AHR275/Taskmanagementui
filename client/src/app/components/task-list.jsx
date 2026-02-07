@@ -2,6 +2,8 @@ import { Plus } from "lucide-react";
 import { TaskCard } from "./task-card";
 import { DateNavigation } from "./date-navigation";
 import { MonthlyRateTracker } from "./monthly-rate-tracker";
+import { useContext } from "react";
+import { TasksContext } from "../App";
 
 function toDateOnlyISO(d) {
   const pad = (n) => String(n).padStart(2, "0");
@@ -89,17 +91,16 @@ function normalizeISODate(value) {
 }
 
 
-export function TaskList({
-  tasks,
-  categories,
-  selectedSection,
-  selectedDate,
-  onSelectDate,
-  onAddTask,
-  onEditTask,
-  onDeleteTask,
-  onToggleComplete,
-}) {
+export function TaskList() {
+  const {
+    tasks,
+
+    selectedSection,
+    selectedDate,
+    onSelectDate,
+    onAddTask,
+
+  }= useContext(TasksContext)
   const todayStr = toDateOnlyISO(new Date());
   const selectedDateISO = normalizeISODate(selectedDate);
 
@@ -232,10 +233,8 @@ export function TaskList({
                   <TaskCard
                     key={task.id}
                     task={task}
-                    categories={categories}
-                    onEdit={onEditTask}
-                    onDelete={onDeleteTask}
-                    onToggleComplete={onToggleComplete}
+                    // categories={categories}
+             
                   />
                 ))
               )}

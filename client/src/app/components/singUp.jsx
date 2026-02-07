@@ -4,7 +4,7 @@ import { SERVER_URL } from "../js/config";
 
 
 
-export default function SignUp({onClose}){
+export default function SignUp({onClose,setIsLoading}){
     // if(!isOpen)return null; 
     const [name,setName]=useState('');
     const [username,setUsername]=useState('');
@@ -20,6 +20,7 @@ export default function SignUp({onClose}){
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true)
         setErrors({});
 
      
@@ -51,6 +52,8 @@ export default function SignUp({onClose}){
         } 
         catch (err) {
                 console.error("Fetch failed:", err);
+        }finally{
+            setIsLoading(false)
         }
         
 
@@ -107,7 +110,7 @@ export default function SignUp({onClose}){
                 </div>
 
                 <div>
-                    <label htmlFor='password'>Password</label>
+                    <label htmlFor='password'>Profile Image</label>
                     <input
                         id="avatar-input"
                         type="file"
@@ -115,7 +118,7 @@ export default function SignUp({onClose}){
                         // onChange={(e) => uploadAvatar(e.target.files[0])}
                         className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    {errors.password ? <p style={{ color: "red", fontSize: "12px" }}>{errors.password}</p> : null}
+                    {errors.avatar_url ? <p style={{ color: "red", fontSize: "12px" }}>{errors.avatar_url}</p> : null}
                 </div>
             </div>
             <button type="submit" onClick={handleSubmit}

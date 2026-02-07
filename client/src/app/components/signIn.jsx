@@ -3,7 +3,7 @@ import { SERVER_URL } from "../js/config";
 
 
 
-export default function SignIn({onClose}){
+export default function SignIn({onClose,setIsLoading}){
     // if(!isOpen)return null; 
     // const [name,setName]=useState('');
     const [username,setUsername]=useState('');
@@ -18,6 +18,7 @@ export default function SignIn({onClose}){
 
 const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true)
     try{
 
             const res = await fetch(`${SERVER_URL}/users/login`, {
@@ -40,6 +41,8 @@ const handleSubmit = async (e) => {
         window.location.reload();
     }catch(err){
         console.error(err.message);
+    }finally{
+        setIsLoading(false);
     }
 
 
@@ -58,19 +61,9 @@ const handleSubmit = async (e) => {
 
         <form className="flex flex-column gap-2 mb-[10px]" >
             <div className="flex flex-column gap-4">
-{      
-        //   <div>
-        //             <label htmlFor='name'>Name</label>
-        //             <input type="text" name="name" placeholder="Enter your name "   
-        //             value={name} onChange={(e)=>{setName(e.currentTarget.value)}} 
-        //             className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-        //             onInputCapture={isValid}
-        //             />
-        //             {errors.name ? <p style={{ color: "red", fontSize: "12px" }}>{errors.name}</p> : null}
-        //         </div>
-}
+
                 <div>
-                    <label htmlFor='username'>Username</label>
+                    <label htmlFor='username'>Username/Email</label>
                     <input type="username" name="username" placeholder="Enter your username "   
                     value={username} onChange={(e)=>{setUsername(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -78,14 +71,7 @@ const handleSubmit = async (e) => {
                     {errors.username ? <p style={{ color: "red", fontSize: "12px" }}>{errors.username}</p> : null}
                 </div>
 
-                {/* <div>
-                    <label htmlFor='email'>Email</label>
-                    <input type="email" name="email" placeholder="Enter your email "   
-                    value={email} onChange={(e)=>{setEmail(e.currentTarget.value)}}
-                    className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    {errors.email ? <p style={{ color: "red", fontSize: "12px" }}>{errors.email}</p> : null}
-                </div> */}
+  
 
                 <div>
                     <label htmlFor='password'>Password</label>

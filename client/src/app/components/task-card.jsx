@@ -1,4 +1,6 @@
 import { Edit2, Trash2, Clock, Calendar, Bell, CheckCircle2, Circle } from "lucide-react";
+import { useContext } from "react";
+import { TasksContext } from "../App";
 
 const difficultyColors = {
   easy: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
@@ -29,7 +31,14 @@ function weekdayLabelFromDbValue(dbDay) {
   return map[dbDay] ?? String(dbDay);
 }
 
-export function TaskCard({ task, categories, onEdit, onDelete, onToggleComplete }) {
+export function TaskCard({task}) {
+  const {
+    categories,    
+    onEditTask,
+    onDeleteTask,
+    onToggleComplete }
+    =useContext(TasksContext);
+  // console.log("my task : ",task);
   const category = categories.find((c) => c.id === task.category_id);
 
   const getScheduleText = () => {
@@ -144,14 +153,14 @@ export function TaskCard({ task, categories, onEdit, onDelete, onToggleComplete 
             </h3>
             <div className="flex gap-2 flex-shrink-0">
               <button
-                onClick={() => onEdit(task)}
+                onClick={() => {console.log(" task id : ", task ," : ", task.id);onEditTask(task)}}
                 className="p-2 text-muted-foreground hover:text-primary hover:bg-secondary rounded-lg transition-colors"
                 aria-label="Edit task"
               >
                 <Edit2 className="w-5 h-5" />
               </button>
               <button
-                onClick={() => onDelete(task.id)}
+                onClick={() => onDeleteTask(task)}
                 className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                 aria-label="Delete task"
               >

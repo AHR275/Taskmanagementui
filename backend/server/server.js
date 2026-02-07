@@ -1,6 +1,7 @@
 // const  express =  require("express")
 // const cors= require("cors");
 // const pool = require("./db")
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -22,9 +23,8 @@ const allowedOrigins = [
   "https://taskmanagementui-client.onrender.com",
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, cb) => {
-    // يسمح لطلبات السيرفر-لسيرفر أو أدوات مثل curl بدون origin
     if (!origin) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error("Not allowed by CORS"));
@@ -32,7 +32,10 @@ app.use(cors({
   credentials: true,
   methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-}));
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 
 app.use("/tasks", TasksRoutes);
@@ -59,8 +62,10 @@ app.get("/health", async (req, res) => {
   }
 });
 
-
+console.log("DB_PASSWORD type:", typeof process.env.DATABASE_URL);
+console.log("DB_PASSWORD exists:", !!process.env.DB_CONFIG);
 const PORT = process.env.PORT ||5122;
+console.log(PORT)
 app.listen(PORT,()=>{
     console.log("the server is running on port 5122 ........")
 })
