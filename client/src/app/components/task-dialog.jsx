@@ -186,7 +186,7 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
         : { enabled: false },
     };
     console.log("initail Task  : " , initialTask);
-    if(initialTask.id)payload.id= initialTask.id ; 
+    if(initialTask)payload.id= initialTask.id ; 
 
     onSubmit(payload);
     // setIsLoading(false);

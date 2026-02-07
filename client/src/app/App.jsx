@@ -256,7 +256,8 @@ useEffect(() => {
     
   }
   const onAddTask=()=>{
-    if(isUser)setIsTaskDialogOpen(true);
+    if(isUser &&categories.length>0)setIsTaskDialogOpen(true);
+    else if(isUser && categories.length===0) setIsCategoryDialogOpen(true);
     else setIsSignupDialogOpen(true);
     
   }
