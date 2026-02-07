@@ -9,6 +9,16 @@ import { requireAuth } from "../middleware/checkAuth.js";
 // import isValidCloudinaryImage from "../middleware/validateAvatar.js";
 // import { message } from "statuses";
 
+const isProd = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,                 // true على Render
+  sameSite: isProd ? "none" : "lax",
+  path: "/",
+  maxAge: 1000 * 60 * 60 * 24 * 7,
+};
+
 
 const UsersRoutes = express.Router();
 
@@ -57,13 +67,7 @@ UsersRoutes.post("/", validateSignup, async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
+    res.cookie("token", token, cookieOptions);
 
     return res.status(201).json(toUser(newUser));
   } catch (error) {
@@ -121,13 +125,7 @@ UsersRoutes.post("/login", validateSignin,async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,        // true only in HTTPS production
-            sameSite: "lax",      // "lax" is safest for dev
-            path: "/",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-        });
+        res.cookie("token", token, cookieOptions);
 
         return res.json({ message: "Login successful" });
 
