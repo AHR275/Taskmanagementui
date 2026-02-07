@@ -5,7 +5,7 @@ export default async function IsAuth() {
   // let categories=[{}]
   try {
     const res = await fetch(`${SERVER_URL}/users/profile`, {
-      method: "POST",
+      method: "GET",
       credentials: "include",
     });
 

@@ -137,7 +137,7 @@ UsersRoutes.post("/login", validateSignin,async (req, res) => {
 });
 
 // check loggin 
-UsersRoutes.post("/profile", requireAuth, async (req, res) => {
+UsersRoutes.get("/profile", requireAuth, async (req, res) => {
   // return user info based on req.user.userId
   const result = await pool.query(
     "SELECT id, name, username, email, signup_date,avatar_url FROM users WHERE id=$1",
