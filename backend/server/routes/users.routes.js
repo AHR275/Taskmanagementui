@@ -148,7 +148,7 @@ UsersRoutes.get("/profile", requireAuth, async (req, res) => {
 
 // log out 
 UsersRoutes.post("/logout", (req, res) => {
-  res.clearCookie("token", token, cookieOptions);
+  res.clearCookie("token", cookieOptions);
 
   res.json({ message: "Logged out" });
 });
