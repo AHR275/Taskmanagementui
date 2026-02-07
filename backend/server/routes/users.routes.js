@@ -148,12 +148,7 @@ UsersRoutes.get("/profile", requireAuth, async (req, res) => {
 
 // log out 
 UsersRoutes.post("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false, // true in HTTPS production
-    path: "/",
-  });
+  res.clearCookie("token", token, cookieOptions);
 
   res.json({ message: "Logged out" });
 });
