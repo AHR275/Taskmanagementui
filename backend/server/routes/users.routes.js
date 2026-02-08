@@ -14,7 +14,7 @@ const isProd = process.env.NODE_ENV === "production";
 const cookieOptions = {
   httpOnly: true,
   secure: isProd,                 // true على Render
-  sameSite: isProd ? "none" : "lax",
+  sameSite: isProd ? "lax" : "lax",
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 7,
 };
