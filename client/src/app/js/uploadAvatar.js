@@ -10,7 +10,9 @@ function validateImage(file) {
   }
 }
 
+
 export default async function uploadAvatar(file) {
+    if(!file)return null ; 
     validateImage(file);
     const formData = new FormData();
     formData.append("file", file);

@@ -20,6 +20,18 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const toYMDInTZ = (dateLike, tz = userTimeZone) => {
+    // en-CA gives YYYY-MM-DD format reliably
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(dateLike));
+  };
+
 
   const [isUser,setIsUser]=useState(false)
   const [user,setUser]=useState({
@@ -52,7 +64,12 @@ export default function App() {
   }, []);
 
 useEffect(() => {
-  if (!isUser) return;
+  setIsLoading(true);
+  if (!isUser) {
+    setIsLoading(false);
+
+    return;
+  }
 
   (async () => {
     console.log(user);
@@ -66,37 +83,16 @@ useEffect(() => {
   })();
   setIsCategoriesUpdated(true);
   setIsTasksUpdated(true);
+  setIsLoading(false);
+
 }, [isUser, user.id,isCategoriesUpdated,isTasksUpdated]);
 
-  // const [categories, setCategories] = useState([
-  //   { id: "studying", name: "Studying", color: "#3b82f6", isDefault: false },
-  //   { id: "working", name: "Working", color: "#8b5cf6", isDefault: false },
-  //   { id: "health", name: "Health", color: "#10b981", isDefault: false },
-  // ]);
-
-
-  // const [tasks, setTasks] = useState([
-  //   {
-  //     id: "1",
-  //     title: "Morning Meditation",
-  //     description: "Meditate for 10 minutes to start the day mindfully",
-  //     difficulty: "easy",
-  //     importance: "high",
-  //     category: "health",
-  //     scheduleType: "daily",
-  //     dueTime: "07:00",
-  //     recurrence: { pattern: "daily" },
-  //     reminder: { enabled: true, beforeMinutes: 15 },
-  //     completed: false,
-  //     completedDates: [],
-  //   },
-  //   // ...rest of initial tasks
-  // ]);
 
   const [selectedSection, setSelectedSection] = useState("today");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  // console.log(selectedDate);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isSignupDialogOpen,setIsSignupDialogOpen]= useState(false);
@@ -112,6 +108,8 @@ useEffect(() => {
     const handleAddTask = async (task) => {
       setIsLoading(true);
       task.user_id= user.id; 
+    if(task.due_at)task.due_at =   new Date(task.due_at).toISOString();
+
       try {
         const res = await fetch(`${SERVER_URL}/tasks`, {
           method: "POST",
@@ -149,6 +147,7 @@ useEffect(() => {
     setIsLoading(true);
 
     const id= task.id;
+    if(task.due_at)task.due_at =   new Date(task.due_at).toISOString();
     console.log(id); 
     try {
         const res = await fetch(`${SERVER_URL}/tasks/update/${id}`, {
@@ -186,6 +185,8 @@ useEffect(() => {
 
   const handleDeleteTask = async(task) => {
     const id= task.id;
+    task.due_at =  new Date(task.due_at).toISOString();
+
     console.log(id); 
     try {
         const res = await fetch(`${SERVER_URL}/tasks/delete/${id}`, {
@@ -220,21 +221,57 @@ useEffect(() => {
       // setEditingTask(null);
       // setIsTaskDialogOpen(false);
   };
+  const handleCompleteTask=async(task_id)=>{
+  try {
+    const res = await fetch(`${SERVER_URL}/tasks/${task_id}/complete`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({  date:selectedDate}), // ✅
+    });
 
-  const handleToggleComplete = (id) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) console.log("complete failed:", res.status, data);
+    else console.log("complete done : " , res.status, data)
+  } catch (error) {
+    console.error(error.message);
+  }
+  }
+  const handleUnCompleteTask=async(task_id)=>{
+    try {
+      
+      await fetch(`${SERVER_URL}/tasks/${task_id}/complete`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: selectedDate }),
+      });
+    } catch (error) {
+      console.error(error.message)
+    }
+    
+  }
 
-        const today = new Date().toISOString().split("T")[0];
-        const newCompleted = !t.completed;
-        const newCompletedDates = newCompleted
-          ? [...t.completedDates, today]
-          : t.completedDates.filter((d) => d !== today);
+  const handleToggleComplete =async (task_id,completedDates) => {
+    setIsLoading(true);
+    try {
 
-        return { ...t, completed: newCompleted, completedDates: newCompletedDates };
-      })
-    );
+    const isCompletedToday = completedDates?.some((c) => {
+      return toYMDInTZ(c.completed_on, userTimeZone) === selectedDate;
+    });
+
+    if (isCompletedToday) {
+      await handleUnCompleteTask(task_id);
+    } else {
+      await handleCompleteTask(task_id);
+    }
+    } catch (error) {
+      console.error(error.message)
+    }finally{
+      setIsLoading(false);
+      setIsTasksUpdated(false);
+
+    }
   };
 
   const openEditDialog = (task) => {
@@ -339,7 +376,7 @@ useEffect(() => {
   };
 
   const handleAddCategory= async(name,color,user_id)=>{
-  
+    setIsLoading(true);
     const body = { name, color,user_id };
     const res = await fetch(`${SERVER_URL}/categories`, {
       method: "POST",
@@ -352,11 +389,12 @@ useEffect(() => {
       return;
     }
     console.log("Success:", data);  
+    setIsLoading(false);
 
   }
 
   const handleEditCategory= async(initialCategory,name,color)=>{
-  
+    setIsLoading(true);
     const id= initialCategory.id;
     const body = { name, color};
     const res = await fetch(`${SERVER_URL}/categories/update/${id}`, {
@@ -370,6 +408,7 @@ useEffect(() => {
       return;
     }
     console.log("Success:", data);
+    setIsLoading(false);
 
   }
 

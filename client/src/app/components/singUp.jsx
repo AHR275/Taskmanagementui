@@ -26,7 +26,7 @@ export default function SignUp({onClose,setIsLoading}){
      
         const file = document.getElementById("avatar-input").files[0];
         const avatar_url=  await uploadAvatar(file); 
-        if(!avatar_url) return null ; 
+        // if(!avatar_url) return null ; 
 
 
 

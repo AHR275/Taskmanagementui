@@ -36,7 +36,9 @@ export function TaskCard({task}) {
     categories,    
     onEditTask,
     onDeleteTask,
-    onToggleComplete }
+    onToggleComplete,
+    selectedDate
+   }
     =useContext(TasksContext);
   // console.log("my task : ",task);
   const category = categories.find((c) => c.id === task.category_id);
@@ -98,12 +100,11 @@ export function TaskCard({task}) {
 
   const today = toISODateOnly(new Date());
 
-  const isCompletedToday =
-    task.type === "one_time"
-      ? !!task.completed
-      : Array.isArray(task.completedDates)
-      ? task.completedDates.includes(today)
-      : false;
+  const isCompleted = task.completedDates.some((c) => {
+    const day = new Date(c.completed_on).toISOString().split("T")[0];
+    return day === selectedDate;
+  });
+
 
   // Helper to convert hex color to rgba with opacity
   const hexToRgba = (hex, opacity) => {
@@ -124,7 +125,7 @@ export function TaskCard({task}) {
   return (
     <div
       className={`border rounded-lg p-5 shadow-sm hover:shadow-md transition-all ${
-        isCompletedToday ? "opacity-60" : ""
+        isCompleted ? "opacity-60" : ""
       }`}
       style={{
         backgroundColor,
@@ -135,11 +136,11 @@ export function TaskCard({task}) {
       <div className="flex items-start gap-4">
         {/* Completion checkbox */}
         <button
-          onClick={() => onToggleComplete(task.id)}
+          onClick={() => onToggleComplete(task.id,task.completedDates)}
           className="mt-1 text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
-          aria-label={isCompletedToday ? "Mark as incomplete" : "Mark as complete"}
+          aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
         >
-          {isCompletedToday ? (
+          {isCompleted ? (
             <CheckCircle2 className="w-6 h-6 text-primary" />
           ) : (
             <Circle className="w-6 h-6" />
@@ -148,7 +149,7 @@ export function TaskCard({task}) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4 mb-2">
-            <h3 className={`text-lg font-medium ${isCompletedToday ? "line-through" : ""}`}>
+            <h3 className={`text-lg font-medium ${isCompleted ? "line-through" : ""}`}>
               {task.title}
             </h3>
             <div className="flex gap-2 flex-shrink-0">

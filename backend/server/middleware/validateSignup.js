@@ -36,7 +36,7 @@ export function validateSignup(req, res, next) {
   else if (!/[0-9]/.test(password)) errors.password = "Password must include 1 number";
   else if (/\$/.test(password)) errors.password = "Password cannnot include '$' ";
 
-  if(!isValidCloudinaryImage(req.body.avatar_url)) errors.avatar_url="There is something wrong in the avatar"
+  // if(!isValidCloudinaryImage(req.body.avatar_url)) errors.avatar_url="There is something wrong in the avatar"
 
   // block special characters you don't want (optional)
   // if (/[<>{}$]/.test(username)) errors.username = "Username contains invalid characters";

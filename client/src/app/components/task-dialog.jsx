@@ -7,12 +7,20 @@ function toISODate(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function combineDateTimeToISO(dueDate, dueTime) {
-  // If you need timezone-safe server timestamps, prefer sending date+time separately and combine server-side.
-  // For now: "YYYY-MM-DDTHH:mm:00"
-  if (!dueDate) return undefined;
-  const t = dueTime ? `${dueTime}:00` : "00:00:00";
+// Combine local date + local time into a "datetime-local" string
+// Example: "2026-02-09T02:59"
+function combineDateTimeLocal(dueDate, dueTime) {
+  if (!dueDate) return "";
+  const t = dueTime ? dueTime : "00:00";
   return `${dueDate}T${t}`;
+}
+
+// Convert local "YYYY-MM-DDTHH:mm" into UTC ISO string for DB (timestamptz)
+function localDateTimeToUTCISO(localDateTime) {
+  if (!localDateTime) return undefined;
+  const d = new Date(localDateTime); // interpreted as LOCAL browser time
+  if (isNaN(d.getTime())) return undefined;
+  return d.toISOString(); // UTC (Z)
 }
 
 export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories }) {
@@ -25,15 +33,19 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
 
   // Schedule
   const [scheduleType, setScheduleType] = useState("one-time"); // one-time | daily | weekly | monthly
-  const [dueDate, setDueDate] = useState("");
-  const [dueTime, setDueTime] = useState("");
+  const [dueDate, setDueDate] = useState(""); // YYYY-MM-DD (local)
+  const [dueTime, setDueTime] = useState(""); // HH:mm (local)
 
   // Recurrence
   const [interval, setInterval] = useState(1); // every N units (days/weeks/months)
   const [selectedDaysOfWeek, setSelectedDaysOfWeek] = useState([]); // 1..7 (Mon..Sun)
   const [selectedDaysOfMonth, setSelectedDaysOfMonth] = useState([]); // 1..31
 
-  // Reminder (fits task_reminders table: before_minutes; recurring interval isn't in schema—keep client-only if you want)
+  // ✅ Recurrence range (NEW)
+  const [recurrenceStartDate, setRecurrenceStartDate] = useState(""); // YYYY-MM-DD
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");     // YYYY-MM-DD (optional)
+
+  // Reminder
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderBeforeMinutes, setReminderBeforeMinutes] = useState(60);
 
@@ -42,33 +54,26 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
 
   useEffect(() => {
     if (initialTask) {
-      // Support BOTH your old shape and DB-ready shape
       setTitle(initialTask.title ?? "");
       setDescription(initialTask.description ?? "");
       setDifficulty(initialTask.difficulty ?? "medium");
       setImportance(initialTask.importance ?? "medium");
 
-      // category: old = "health" name/id; new = category_id
       setCategoryId(initialTask.category_id ?? initialTask.category ?? categories?.[0]?.id ?? "");
 
-      // Determine scheduleType
-      // DB shape: type + recurrence_frequency
+      // Determine schedule type
       if (initialTask.type === "one_time" || initialTask.scheduleType === "one-time") {
         setScheduleType("one-time");
       } else if (initialTask.recurrence_frequency) {
         setScheduleType(initialTask.recurrence_frequency); // daily/weekly/monthly
       } else if (initialTask.scheduleType) {
-        // old scheduleType: daily/weekly/monthly/custom
         setScheduleType(initialTask.scheduleType === "custom" ? "daily" : initialTask.scheduleType);
       } else {
         setScheduleType("one-time");
       }
 
-      // Time fields
-      // DB: due_at (timestamp) + time_of_day (time)
-      // Old: dueDate + dueTime
+      // Fill dueDate/dueTime (local) from due_at (UTC ISO) if present
       if (initialTask.due_at) {
-        // due_at expected ISO string
         const d = new Date(initialTask.due_at);
         setDueDate(toISODate(d));
         setDueTime(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
@@ -77,48 +82,53 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
         setDueTime(initialTask.dueTime ?? initialTask.time_of_day ?? "");
       }
 
-      // Recurrence
-      setInterval(initialTask.recurrence_interval ?? initialTask?.recurrence?.interval ?? 1);
+      // Interval
+      setInterval(Number(initialTask.recurrence_interval ?? initialTask?.recurrence?.interval ?? 1) || 1);
 
-      // weekly days: DB uses 1..7 (Mon..Sun)
-      // old used 0..6 (Sun..Sat). Convert if needed.
+      // weekly days: DB uses 1..7 (Mon..Sun); old might use 0..6 (Sun..Sat)
       const byWeekday =
         initialTask.recurrence_by_weekday ??
         (initialTask?.recurrence?.daysOfWeek
-          ? initialTask.recurrence.daysOfWeek.map((d) => {
-              // old: 0..6 (Sun..Sat) => new: 1..7 (Mon..Sun)
-              // mapping: Sun(0)->7, Mon(1)->1, Tue(2)->2,... Sat(6)->6
-              return d === 0 ? 7 : d;
-            })
+          ? initialTask.recurrence.daysOfWeek.map((d) => (d === 0 ? 7 : d))
           : []);
-
-      setSelectedDaysOfWeek(byWeekday);
+      setSelectedDaysOfWeek(Array.isArray(byWeekday) ? byWeekday : []);
 
       const daysOfMonth = initialTask?.recurrence?.daysOfMonth ?? initialTask.recurrence_by_monthday ?? [];
-      setSelectedDaysOfMonth(daysOfMonth);
+      setSelectedDaysOfMonth(Array.isArray(daysOfMonth) ? daysOfMonth : []);
+
+      // ✅ Recurrence range (NEW)
+      setRecurrenceStartDate(initialTask.recurrence_start_date ?? "");
+      setRecurrenceEndDate(initialTask.recurrence_end_date ?? "");
 
       // Reminder
       const r = initialTask.reminder ?? null;
       if (r) {
         setReminderEnabled(!!r.enabled);
-        setReminderBeforeMinutes(r.beforeMinutes ?? 60);
+        setReminderBeforeMinutes(r.before_minutes ?? r.beforeMinutes ?? 60);
       } else {
-        // DB might store reminders in another table, so default off
         setReminderEnabled(false);
         setReminderBeforeMinutes(60);
       }
     } else {
+      // reset
       setTitle("");
       setDescription("");
       setDifficulty("medium");
       setImportance("medium");
       setCategoryId(categories?.[0]?.id || "");
+
       setScheduleType("one-time");
       setDueDate("");
       setDueTime("");
+
       setInterval(1);
       setSelectedDaysOfWeek([]);
       setSelectedDaysOfMonth([]);
+
+      // ✅ Recurrence range reset
+      setRecurrenceStartDate("");
+      setRecurrenceEndDate("");
+
       setReminderEnabled(false);
       setReminderBeforeMinutes(60);
     }
@@ -139,10 +149,16 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // setIsLoading(true);
     if (!title.trim() || !categoryId) return;
 
-    // Build payload that fits your DB table
+    // Validation for recurring
+    if (isRecurring && !recurrenceStartDate) return;
+    if (isRecurring && recurrenceEndDate && recurrenceEndDate < recurrenceStartDate) return;
+
+    // For one-time: build local datetime then convert to UTC ISO
+    const localDateTime = scheduleType === "one-time" ? combineDateTimeLocal(dueDate, dueTime) : "";
+    const dueAtUtc = scheduleType === "one-time" ? localDateTimeToUTCISO(localDateTime) : undefined;
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -152,44 +168,38 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
 
       // tasks table
       type: scheduleType === "one-time" ? "one_time" : "recurring",
-      due_at: scheduleType === "one-time" ? combineDateTimeToISO(dueDate, dueTime) : undefined,
+
+      // ✅ One-time tasks store UTC instant
+      due_at: scheduleType === "one-time" ? (dueAtUtc ?? undefined) : undefined,
+
+      // ✅ Recurring tasks use time_of_day (local clock time)
       time_of_day: scheduleType !== "one-time" ? (dueTime || undefined) : undefined,
 
       recurrence_frequency: scheduleType !== "one-time" ? recurrenceFrequency : undefined,
       recurrence_interval: scheduleType !== "one-time" ? interval : undefined,
 
-      // Weekly / Monthly extras (stored in tasks table)
       recurrence_by_weekday:
         scheduleType === "weekly" ? (selectedDaysOfWeek.length ? selectedDaysOfWeek : undefined) : undefined,
 
-      // NOTE: your tasks table doesn’t have month-day array in the version we wrote.
-      // If you want monthly specific days, you have two choices:
-      // (A) Add a column: recurrence_by_monthday smallint[]  (recommended)
-      // (B) Store it as JSON
-      // For now, I’ll include it in payload so you can store it (A or B).
       recurrence_by_monthday:
         scheduleType === "monthly" ? (selectedDaysOfMonth.length ? selectedDaysOfMonth : undefined) : undefined,
 
-      // Good defaults for scheduling
-      recurrence_start_date:
-        scheduleType !== "one-time" ? (dueDate || toISODate(new Date())) : undefined,
+      // ✅ NEW: recurrence date range
+      recurrence_start_date: scheduleType !== "one-time" ? (recurrenceStartDate || undefined) : undefined,
+      recurrence_end_date: scheduleType !== "one-time" ? (recurrenceEndDate || undefined) : undefined,
 
+      // Anchor date (important for interval math)
       recurrence_anchor_date:
-        scheduleType !== "one-time" ? (dueDate || toISODate(new Date())) : undefined,
+        scheduleType !== "one-time" ? (recurrenceStartDate || toISODate(new Date())) : undefined,
 
-      // Reminder maps to task_reminders table (separate insert)
       reminder: reminderEnabled
-        ? {
-            enabled: true,
-            before_minutes: reminderBeforeMinutes,
-          }
+        ? { enabled: true, before_minutes: reminderBeforeMinutes }
         : { enabled: false },
     };
-    console.log("initail Task  : " , initialTask);
-    if(initialTask)payload.id= initialTask.id ; 
+
+    if (initialTask?.id) payload.id = initialTask.id;
 
     onSubmit(payload);
-    // setIsLoading(false);
   };
 
   if (!isOpen) return null;
@@ -357,6 +367,39 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
               />
             </div>
           </div>
+
+          {/* ✅ NEW: Recurrence Start / End Date (ONLY for recurring) */}
+          {isRecurring && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="recurrenceStartDate" className="block mb-2">
+                  Start Date
+                </label>
+                <input
+                  id="recurrenceStartDate"
+                  type="date"
+                  value={recurrenceStartDate}
+                  onChange={(e) => setRecurrenceStartDate(e.target.value)}
+                  className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="recurrenceEndDate" className="block mb-2">
+                  End Date (optional)
+                </label>
+                <input
+                  id="recurrenceEndDate"
+                  type="date"
+                  value={recurrenceEndDate}
+                  onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                  className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  min={recurrenceStartDate || undefined}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Interval (ONLY for recurring types) */}
           {isRecurring && (

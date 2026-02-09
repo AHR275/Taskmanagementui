@@ -27,7 +27,7 @@ export async function getCategories(user_id) {
 export async function getTasks(user_id) {
   try {
     const res = await fetch(`${SERVER_URL}/tasks/${user_id}`, {
-      method: "POST",
+      method: "GET",
       credentials: "include",
     });
 
@@ -52,8 +52,23 @@ export async function getTasks(user_id) {
       return [];
     }
 
-    const data = await res.json();
-    return Array.isArray(data) ? data : []; // ✅ always array
+    const tasks = await res.json();
+    if (!Array.isArray(tasks)) return [];
+
+    const tasksWithCompletions = await Promise.all(
+      tasks.map(async (task) => {
+        const r = await fetch(`${SERVER_URL}/tasks/${task.id}/completions`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!r.ok) return { ...task, completedDates: [] };
+
+        const data = await r.json();
+        return { ...task, completedDates: data.completions ?? [] };
+      })
+    );
+    return tasksWithCompletions// ✅ always array
   } catch (error) {
     console.error(error.message);
     return [];
