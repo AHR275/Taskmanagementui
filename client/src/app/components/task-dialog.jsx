@@ -496,7 +496,7 @@ export function TaskDialog({ isOpen, onClose, onSubmit, initialTask, categories 
                     type="number"
                     min="1"
                     value={reminderBeforeMinutes}
-                    onChange={(e) => setReminderBeforeMinutes(parseInt(e.target.value) || 60)}
+                    onChange={(e) => setReminderBeforeMinutes(parseInt(e.target.value ||"1") || 60)}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
