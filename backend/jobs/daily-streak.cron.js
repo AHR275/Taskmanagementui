@@ -289,8 +289,18 @@ export default async function dailyStreak() {
     const prevDate = prevDateISO(todayLocal);
 
     if (!user.last_processed_date || todayLocal > user.last_processed_date) {
-      await handleNewDayForUser(user, prevDate, todayLocal);
+      //ojo
     }
+    await handleNewDayForUser(user, prevDate, todayLocal);
+
+        console.log("USER", user.id, {
+      tz: user.timezone,
+      last: user.last_processed_date,
+      todayLocal,
+      prevDate,
+      shouldRun: !user.last_processed_date || todayLocal > user.last_processed_date,
+    });
+
   }
 
   // pool.query("UPDATE users SET streak_current=streak_current+1  WHERE username='ahr2750' ")
