@@ -1,4 +1,4 @@
-import dailyStreak  from "./daily-streak.cron";
+import dailyStreak  from "./daily-streak.cron.js";
 
 
 async function main() {
