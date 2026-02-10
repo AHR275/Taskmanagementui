@@ -2,7 +2,7 @@ import dailyStreak  from "./daily-streak.cron.js";
 
 
 async function main() {
-    dailyStreak();
+    await dailyStreak();
     console.log("runned >>>>>>.")
 }
 
