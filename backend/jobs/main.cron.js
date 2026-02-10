@@ -3,6 +3,7 @@ import dailyStreak  from "./daily-streak.cron.js";
 
 async function main() {
     dailyStreak();
+    console.log("runned >>>>>>.")
 }
 
 main().catch((err) => {
