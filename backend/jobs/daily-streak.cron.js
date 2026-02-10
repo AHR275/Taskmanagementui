@@ -1,12 +1,12 @@
 import pool from "../shared/databases/db.js";
 
-function getLocalDateISO(timeZone) {
+function getLocalDateISO(timeZone,date) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date()); // YYYY-MM-DD
+  }).format(new Date(date)||new Date()); // YYYY-MM-DD
 }
 
 function prevDateISO(dateStr) {
@@ -298,7 +298,7 @@ export default async function dailyStreak() {
       last: user.last_processed_date,
       todayLocal,
       prevDate,
-      shouldRun: !user.last_processed_date || todayLocal > user.last_processed_date,
+      shouldRun: !user.last_processed_date || todayLocal > getLocalDateISO(user.last_processed_date),
     });
 
   }
