@@ -12,6 +12,7 @@ function getLocalDateISO(timeZone, date = new Date()) {
 }
 
 
+
 function prevDateISO(dateStr) {
   const [y, m, d] = dateStr.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d)); // use UTC to avoid DST issues
@@ -301,7 +302,7 @@ export default async function dailyStreak() {
       last: user.last_processed_date,
       todayLocal,
       prevDate,
-      shouldRun: !user.last_processed_date || todayLocal > getLocalDateISO(user.last_processed_date),
+      shouldRun: !user.last_processed_date || todayLocal > getLocalDateISO(user.timeZone, user.last_processed_date),
     });
 
   }
