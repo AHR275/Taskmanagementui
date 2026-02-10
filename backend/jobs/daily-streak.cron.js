@@ -255,16 +255,16 @@ export default async function dailyStreak() {
 
     // Convert last_processed_date (Date from pg) -> YYYY-MM-DD string (in UTC)
     // We compare string-to-string (safe + simple)
-    const lastISO = user.last_processed_date
-      ? getLocalDateISO("UTC", user.last_processed_date)
+    const lastProcessedLocal = user.last_processed_date
+      ? getLocalDateISO(user.timezone, user.last_processed_date)
       : null;
 
-    const shouldRun = !lastISO || todayLocal > lastISO;
+    const shouldRun = !lastProcessedLocal || todayLocal > lastProcessedLocal;
 
     console.log("USER", user.id, {
       username: user.username,
       tz,
-      lastISO,
+      lastProcessedLocal,
       todayLocal,
       prevDate,
       shouldRun,
