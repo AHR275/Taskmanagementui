@@ -222,6 +222,7 @@ async function isAllTasksCompletedWithDue(user,prevDate) {
 async function handleNewDayForUser(user ,prevDate,todayLocal) {
 
   const { totalDue, totalMissed, ok } = await isAllTasksCompletedWithDue(user, prevDate);
+  console.log(user.username , ok )
 
   if (totalDue === 0) {
     // no tasks due yesterday => don't change streak
