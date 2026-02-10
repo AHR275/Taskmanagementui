@@ -1,13 +1,16 @@
 import pool from "../shared/databases/db.js";
 
-function getLocalDateISO(timeZone,date) {
+function getLocalDateISO(timeZone, date = new Date()) {
+  const d = date ? new Date(date) : new Date();
+
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date(date)||new Date()); // YYYY-MM-DD
+  }).format(d);
 }
+
 
 function prevDateISO(dateStr) {
   const [y, m, d] = dateStr.split("-").map(Number);
