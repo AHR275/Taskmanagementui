@@ -302,6 +302,7 @@ export default async function dailyStreak() {
       last: user.last_processed_date,
       todayLocal,
       prevDate,
+      localISO: getLocalDateISO(user.timeZone, user.last_processed_date), 
       shouldRun: !user.last_processed_date || todayLocal > getLocalDateISO(user.timeZone, user.last_processed_date),
     });
 
