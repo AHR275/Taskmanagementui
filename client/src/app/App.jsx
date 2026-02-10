@@ -8,7 +8,7 @@ import LoadingScreen from "./components/loadingScreen";
 // import SignUp from "./components/singUp";
 import Register from "./components/register";
 import IsAuth from "./js/Auth";
-import { getCategories, getTasks } from "./js/userData";
+import { getCategories, getTasks , updateUserData} from "./js/userData";
 import { useEffect ,useContext} from "react";
 import { SERVER_URL } from "./js/config";
 // import { getCategories } from "./js/Auth";
@@ -21,6 +21,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  console.log("time user :" , userTimeZone);
 
   const toYMDInTZ = (dateLike, tz = userTimeZone) => {
     // en-CA gives YYYY-MM-DD format reliably
@@ -76,6 +77,10 @@ useEffect(() => {
 
     const categoriesInfo = await getCategories(user.id);
     const tasksInfo = await getTasks(user.id);
+    console.log(await updateUserData({
+    timezone: userTimeZone,
+    username: user.username,
+     }));
     setCategories(categoriesInfo ?? []);
     setTasks(tasksInfo ?? []);
     console.log("categoriesInfo :>" , categoriesInfo);

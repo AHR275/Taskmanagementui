@@ -1,5 +1,5 @@
 import express from "express";
-import pool from "../databases/db.js";
+import pool from "../../shared/databases/db.js";
 // import { fromBody, toTask } from "../models.model.js";
 import { requireAuth } from "../middleware/checkAuth.js";
 

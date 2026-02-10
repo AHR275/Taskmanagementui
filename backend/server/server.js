@@ -10,7 +10,7 @@ import TasksRoutes from "./routes/tasks.routes.js";
 import UsersRoutes from "./routes/users.routes.js";
 import CategoriesRoutes from "./routes/categories.routes.js";
 import { requireAuth } from "./middleware/checkAuth.js";
-import pool from "./databases/db.js";
+// import pool from "./databases/db.js";
 
 // import pool from "./db.js";
 

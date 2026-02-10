@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "main": "server/index.js",
   "scripts": {
-    "dev": "nodemon server/index.js"
+    "dev": "nodemon server/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@prisma/client": "^7.3.0",
     "bcrypt": "^6.0.0",

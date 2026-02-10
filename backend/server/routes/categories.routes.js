@@ -1,5 +1,5 @@
 import express from "express";
-import pool from "../databases/db.js";
+import pool from "../../shared/databases/db.js";
 import { validateCategory } from "../middleware/validateCategory.js";
 // import { message } from "statuses";
 // import bcrypt from "bcrypt";

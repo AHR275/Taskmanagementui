@@ -1,0 +1,35 @@
+name: Daily Streak Cron
+
+on:
+  schedule:
+    # runs every hour (UTC)
+    - cron: "0 * * * *"
+
+  # allows manual run from GitHub UI (VERY useful)
+  workflow_dispatch:
+
+jobs:
+  run-daily-streak:
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: ${{ secrets.NODE_ENV }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run mian job
+        run: node backend/jobs/main.cron.js

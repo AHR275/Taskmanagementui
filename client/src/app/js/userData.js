@@ -74,3 +74,26 @@ export async function getTasks(user_id) {
     return [];
   }
 }
+
+export async function updateUserData({ timezone, username }) {
+  console.log(timezone);
+  const body = {timezone};
+  try {
+    const res = await fetch(`${SERVER_URL}/users/data/${username}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body ),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}

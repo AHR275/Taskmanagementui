@@ -1,5 +1,5 @@
 import express from "express";
-import pool from "../databases/db.js";
+import pool from "../../shared/databases/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { fromBody, toUser } from "../models/users.model.js";
@@ -188,6 +188,38 @@ UsersRoutes.delete("/:username",async(req,res)=>{
         console.error(err.message);
     }
 });
+
+UsersRoutes.put("/data/:username", async (req, res) => {
+  try {
+    const { timezone } = req.body;
+    const { username } = req.params;
+
+    if (!timezone) {
+      return res.status(400).json({ error: "timezone is required" });
+    }
+
+    const active_date = new Date();
+
+    const result = await pool.query(
+      `UPDATE users
+       SET timezone = $1, active_date = $2
+       WHERE username = $3
+       RETURNING username, timezone, active_date`,
+      [timezone, active_date, username]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Update user data error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 export default UsersRoutes ; 
 
