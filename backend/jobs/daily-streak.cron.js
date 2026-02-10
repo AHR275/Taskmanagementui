@@ -217,21 +217,33 @@ async function IsAllTasksCompleted(user,prevDate) {
 }
 async function handleNewDayForUser(user ,prevDate,todayLocal) {
 
-  if(!IsAllTasksCompleted(user,prevDate))return false; 
+  if(!IsAllTasksCompleted(user,prevDate)){
+        pool.query(`
+      UPDATE users
+      SET
+        streak_current = 0, 
+        last_processed_date = $2
+      WHERE id = $1;
+  
+      `,[user.id,todayLocal])
 
-  pool.query(`
-    UPDATE users
-    SET
-      streak_current = streak_current + 1,
-      streak_best = CASE
-      WHEN streak_current + 1 > streak_best
-      THEN streak_current + 1
-      ELSE streak_best
-      END, 
-      last_processed_date = $2
-    WHERE id = $1;
+  }else{
 
-    `,[user.id,todayLocal])
+    pool.query(`
+      UPDATE users
+      SET
+        streak_current = streak_current + 1,
+        streak_best = CASE
+        WHEN streak_current + 1 > streak_best
+        THEN streak_current + 1
+        ELSE streak_best
+        END, 
+        last_processed_date = $2
+      WHERE id = $1;
+  
+      `,[user.id,todayLocal])
+  }
+
   
 }
 
