@@ -250,17 +250,19 @@ async function handleNewDayForUser(user ,prevDate,todayLocal) {
 
   // increasment 
 
-       await pool.query(`
+      const res=  await pool.query(`
       UPDATE users
       SET
         streak_current = COALESCE(streak_current, 0) + 1, 
-        streak_best = GREATEST(COALESCE(streak_best, 0), COALESCE(streak_current, 0) + 1)
+        streak_best = GREATEST(COALESCE(streak_best, 0), COALESCE(streak_current, 0) + 1), 
 
    
         last_processed_date = $2::date
-      WHERE id = $1;
-  
+      WHERE id = $1
+        RETURNING  username, streak_current , streak_best , last_processed_date ;
       `,[user.id,todayLocal])
+
+      console.log(res.rows[0]);
   
 }
 
