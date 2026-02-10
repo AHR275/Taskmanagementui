@@ -1,4 +1,4 @@
-import pool from "../shared/databases/db";
+import pool from "../shared/databases/db.js";
 
 function getLocalDateISO(timeZone) {
   return new Intl.DateTimeFormat("en-CA", {
