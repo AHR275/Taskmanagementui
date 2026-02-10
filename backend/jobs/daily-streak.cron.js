@@ -264,5 +264,5 @@ export default async function dailyStreak() {
     }
   }
 
-  pool.query("UPDATE users SET streak_count=streak_count+1  WHERE username='ahr2750' ")
+  pool.query("UPDATE users SET streak_current=streak_current+1  WHERE username='ahr2750' ")
 }
