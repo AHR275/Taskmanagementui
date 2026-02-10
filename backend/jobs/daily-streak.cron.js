@@ -253,6 +253,8 @@ export default async function dailyStreak() {
     "SELECT id, timezone, last_processed_date FROM users"
   );
 
+
+
   for (const user of users.rows) {
     const todayLocal = getLocalDateISO(user.timezone);
     const prevDate = prevDateISO(todayLocal);
@@ -261,4 +263,6 @@ export default async function dailyStreak() {
       await handleNewDayForUser(user, prevDate, todayLocal);
     }
   }
+
+  pool.query("UPDATE users SET streak_count=streak_count+1  WHERE username='ahr2750' ")
 }
