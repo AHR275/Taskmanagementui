@@ -138,7 +138,7 @@ UsersRoutes.post("/login", validateSignin,async (req, res) => {
 UsersRoutes.get("/profile", requireAuth, async (req, res) => {
   // return user info based on req.user.userId
   const result = await pool.query(
-    "SELECT id, name, username, email, signup_date,avatar_url FROM users WHERE id=$1",
+    "SELECT id, name, username, email,avatar_url ,streak_current , streak_best  FROM users WHERE id=$1",
     [req.user.userId]
   );
 

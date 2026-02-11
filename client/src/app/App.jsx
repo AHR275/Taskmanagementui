@@ -11,6 +11,8 @@ import IsAuth from "./js/Auth";
 import { getCategories, getTasks , updateUserData} from "./js/userData";
 import { useEffect ,useContext} from "react";
 import { SERVER_URL } from "./js/config";
+// import dailyStreak from "./components/dailyStreak";
+import DailyStreak from "./components/dailyStreak";
 // import { getCategories } from "./js/Auth";
 export const SidebarContext = createContext(null);
 export const TasksContext   = createContext(null)
@@ -489,6 +491,11 @@ useEffect(() => {
 
 
               <div className="flex flex-row gap-3 px-2 py-1 justify-content">
+
+               {isUser?
+              <DailyStreak userStreak_current={user.streak_current} isDark={isDark}/>
+                : null
+               } 
               <button
                 onClick={toggleTheme}
                 className="p-3 rounded-circle hover:bg-accent transition-colors"
@@ -497,6 +504,9 @@ useEffect(() => {
                 {isDark ? <Sun className="w-5 h-5 max-w-5 max-h-5" /> : <Moon className="w-5 h-5 max-w-5 max-h-5" />}
               </button>
 
+
+
+         
               {!isUser?
                 <button 
                 className="p-3 rounded-2 hover:bg-accent transition-colors"
@@ -508,6 +518,8 @@ useEffect(() => {
               </button>
               :
               <>
+
+              
              
                 <button 
                 className="p-3 rounded-2 hover:bg-accent transition-colors"
