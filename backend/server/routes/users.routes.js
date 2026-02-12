@@ -6,6 +6,8 @@ import { fromBody, toUser } from "../models/users.model.js";
 import { validateSignup } from "../middleware/validateSignup.js";
 import { validateSignin } from "../middleware/validateSignin.js";
 import { requireAuth } from "../middleware/checkAuth.js";
+import { sendVerification, verifyEmail } from "../controllers/auth.controller.js";
+
 // import isValidCloudinaryImage from "../middleware/validateAvatar.js";
 // import { message } from "statuses";
 
@@ -138,7 +140,7 @@ UsersRoutes.post("/login", validateSignin,async (req, res) => {
 UsersRoutes.get("/profile", requireAuth, async (req, res) => {
   // return user info based on req.user.userId
   const result = await pool.query(
-    "SELECT id, name, username, email,avatar_url ,streak_current , streak_best  FROM users WHERE id=$1",
+    "SELECT id, name, username, email,email_verified,avatar_url ,streak_current , streak_best  FROM users WHERE id=$1",
     [req.user.userId]
   );
 
@@ -218,6 +220,35 @@ UsersRoutes.put("/data/:username", async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+
+UsersRoutes.patch("/email",requireAuth, async (req, res) => {
+  const userId = req.user.userId;
+  const { email } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET email = $1,
+           email_verified = FALSE,
+           email_verified_at = NULL
+       WHERE id = $2
+       RETURNING email`,
+      [email, userId]
+    );
+
+    return res.json({ email: result.rows[0].email });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(409).json({ errors: { email: "Email already used" } });
+    }
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+UsersRoutes.post("/auth/send-verification", sendVerification);
+UsersRoutes.get("/verify-email", verifyEmail);
 
 
 

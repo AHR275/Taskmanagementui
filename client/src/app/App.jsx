@@ -5,14 +5,18 @@ import { TaskList } from "./components/task-list";
 import { TaskDialog } from "./components/task-dialog";
 import { CategoryDialog } from "./components/category-dialog";
 import LoadingScreen from "./components/loadingScreen";
-// import SignUp from "./components/singUp";
 import Register from "./components/register";
+import VerificationEmailDialog from "./components/verificationEmail-dialog";
+import Alert from "./components/alert";
+
 import IsAuth from "./js/Auth";
 import { getCategories, getTasks , updateUserData} from "./js/userData";
+import verificationEmail from "./js/verificationEmail";
 import { useEffect ,useContext} from "react";
 import { SERVER_URL } from "./js/config";
 // import dailyStreak from "./components/dailyStreak";
 import DailyStreak from "./components/dailyStreak";
+// import pool from "../../../backend/shared/databases/db";
 // import { getCategories } from "./js/Auth";
 export const SidebarContext = createContext(null);
 export const TasksContext   = createContext(null)
@@ -50,6 +54,18 @@ export default function App() {
   const [isCategoriesUpdated,setIsCategoriesUpdated]=useState(true);
   const [isTasksUpdated,setIsTasksUpdated]=useState(true);
 
+  const [errors,setErrors]=useState({});
+
+  // alert states 
+  const [isAlert,setIsAlert]=useState(false);
+  const [alertVariant,setAlertVariant]=useState('info');
+  const [alertTitle,setAlertTitle]=useState('');
+  const [alertDescription,setAlertDescription]=useState('');
+  
+
+  const CloseAlert=()=>{
+    setIsAlert(false);
+  }
 
   async function checkAuth() {
 
@@ -65,7 +81,11 @@ export default function App() {
 
     checkAuth();
   }, []);
-
+  useEffect(() => {
+  if (!isAlert) return;
+  const t = setTimeout(() => setIsAlert(false), 5000);
+  return () => clearTimeout(t);
+}, [isAlert]);
 useEffect(() => {
   setIsLoading(true);
   if (!isUser) {
@@ -74,8 +94,12 @@ useEffect(() => {
     return;
   }
 
+
   (async () => {
     console.log(user);
+
+    // if(!user.email_verified)verificationEmail({username: user.username,userId: user.id, email:user.email})
+    if(!user.email_verified)setIsVerificationEmailDialogOpen(true);
 
     const categoriesInfo = await getCategories(user.id);
     const tasksInfo = await getTasks(user.id);
@@ -103,14 +127,83 @@ useEffect(() => {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isSignupDialogOpen,setIsSignupDialogOpen]= useState(false);
+  const [isVerificationEmailDialogOpen,setIsVerificationEmailDialogOpen]= useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
+
+  const setAlert =(title,description,variant)=>{
+        setIsAlert(true);
+        setAlertTitle(title);
+        setAlertDescription(description);
+        setAlertVariant(variant);
+  }
 
   const toggleTheme = () => {
     setIsDark((v) => !v);
     document.documentElement.classList.toggle("dark");
   };
 
+
+    const handleVerificationEmail = async(e,email)=>{
+           
+            e.preventDefault();
+            setIsLoading(true)
+            setErrors({});
+      try{
+        if (email !== user.email) {
+                  // 1️⃣ Check if email already exists
+          const res = await fetch(`${SERVER_URL}/users/email`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            setErrors(data.errors || {});
+            setAlert("Failed Verify Email",
+              data?.errors?.email || data?.message || "Something went wrong",
+              "error");
+
+            setIsLoading(false); 
+            return;
+          }
+
+
+          // console.log("Changed email:", res.rows[0].email);
+          console.log("Changed email:", data.email);
+
+        }
+            
+      const [userId,username]=[ user.id,user.username,]
+        const body = {  username, email,userId };
+        const res = await fetch(`${SERVER_URL}/users/auth/send-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+        setErrors(data.errors || {});
+        return;
+        }
+            console.log("Success:", data);
+            setAlert("Sent Email",data.message,"info");
+
+            setIsVerificationEmailDialogOpen(false);
+            // window.location.reload();
+      } 
+      catch (err) {
+              console.error("Fetch failed:", err);
+      }finally{
+          setIsLoading(false)
+      }
+            
+    
+            
+      };
+    
   
     const handleAddTask = async (task) => {
       setIsLoading(true);
@@ -354,6 +447,10 @@ useEffect(() => {
     setEditingCategory(null);
   };
 
+  const closeVerificationEmailDialog=()=>{
+    setIsVerificationEmailDialogOpen(false);
+  }
+
   const handleLogout= async(e)=>{
     e.preventDefault();
     setIsLoading(true);
@@ -581,6 +678,23 @@ useEffect(() => {
           setIsCategoriesUpdated={setIsCategoriesUpdated}
         />
         <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true} setIsLoading={setIsLoading}></Register>
+        <VerificationEmailDialog  isOpen={isVerificationEmailDialogOpen} onClose={closeVerificationEmailDialog}
+         onSubmit={handleVerificationEmail} user={user}
+         errors={errors}
+          ></VerificationEmailDialog>
+        
+        {isAlert &&
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] w-[92%] max-w-xl">
+        <Alert
+          title={alertTitle}
+          description={alertDescription}
+          variant={alertVariant}
+          onClose={() => CloseAlert}
+          isOpen={isAlert}
+          
+        />
+        </div>
+}
       </div>
 
     </div>
