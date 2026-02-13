@@ -678,10 +678,10 @@ useEffect(() => {
           setIsCategoriesUpdated={setIsCategoriesUpdated}
         />
         <Register  isOpen={isSignupDialogOpen} onClose={closeSignupDialog}  isSignin={true} setIsLoading={setIsLoading}></Register>
-        <VerificationEmailDialog  isOpen={isVerificationEmailDialogOpen} onClose={closeVerificationEmailDialog}
+        {/* <VerificationEmailDialog  isOpen={isVerificationEmailDialogOpen} onClose={closeVerificationEmailDialog}
          onSubmit={handleVerificationEmail} user={user}
          errors={errors}
-          ></VerificationEmailDialog>
+          ></VerificationEmailDialog> */}
         
         {isAlert &&
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] w-[92%] max-w-xl">

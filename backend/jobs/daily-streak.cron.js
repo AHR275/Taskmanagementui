@@ -261,14 +261,14 @@ export default async function dailyStreak() {
 
     const shouldRun = !lastProcessedLocal || todayLocal > lastProcessedLocal;
 
-    console.log("USER", user.id, {
-      username: user.username,
-      tz,
-      lastProcessedLocal,
-      todayLocal,
-      prevDate,
-      shouldRun,
-    });
+    // console.log("USER", user.id, {
+    //   username: user.username,
+    //   tz,
+    //   lastProcessedLocal,
+    //   todayLocal,
+    //   prevDate,
+    //   shouldRun,
+    // });
 
     if (!shouldRun) continue;
 
