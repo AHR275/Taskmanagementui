@@ -30,7 +30,7 @@ export async function sendVerification(req, res) {
 
   const verifyUrl = `${process.env.VITE_API_URL}/verify-email?token=${token}`;
 
-  await sendVerificationEmail({ to: email, verifyUrl ,username});
+  const res = await sendVerificationEmail({ to: email, verifyUrl ,username});
 
   // avoid leaking whether email exists if this is "resend"
   return res.json({ ok: true, message: "If that email exists, we sent a verification link." });

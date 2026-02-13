@@ -89,6 +89,7 @@ export async function sendVerificationEmail({ to, verifyUrl,username }) {
   const html = verificationEmailTemplate(verifyUrl,username)
   const res= await sendEmail({to,  subject:'Verify Your Email', html})
   console.log(res);
+  return res; 
   // console.log("Message sent:", info.messageId, info.accepted);
 
 
