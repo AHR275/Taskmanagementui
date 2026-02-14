@@ -10,14 +10,14 @@ import pool from "../shared/databases/db.js";
  * - Only tasks whose computed remind_time is in [now, now + 10 minutes)
  *
  * Computed remind_time:
- *   remind_time = task_time - reminder_before_minutes
+ *   remind_time = time_of_day - reminder_before_minutes
  *
  * Returns:
  *   task_name, task_description, category_name (+ some debug fields)
  *
  * IMPORTANT ASSUMPTION:
- *   tasks.task_time is a timestamptz/timestamp (full datetime), not a "time" column.
- *   If task_time is only TIME, tell me and I’ll rewrite the SQL to build a timestamp for today.
+ *   tasks.time_of_day is a timestamptz/timestamp (full datetime), not a "time" column.
+ *   If time_of_day is only TIME, tell me and I’ll rewrite the SQL to build a timestamp for today.
  */
 
 const WINDOW_MINUTES = 30;
@@ -49,7 +49,7 @@ function isoWeekdayFromISODate(isoDateStr) {
 // Computed reminder timestamp (remind_time)
 const REMIND_TIME_SQL = `
 (
-  t.task_time
+  t.time_of_day
   - (COALESCE(t.reminder_before_minutes, 0) || ' minutes')::interval
 )
 `;
@@ -74,7 +74,7 @@ const BASE_SELECT_SQL = `
     t.title       AS task_name,
     t.description AS task_description,
     c.name        AS category_name,
-    t.task_time,
+    t.time_of_day,
     t.reminder_before_minutes,
     ${REMIND_TIME_SQL} AS remind_time
   FROM tasks t
@@ -92,7 +92,7 @@ export async function dueOneTimeToday(userId, todayLocal) {
     ${BASE_SELECT_SQL}
     WHERE t.user_id = $1
       AND t.type = 'one_time'
-      AND t.task_time::date = $2::date
+      AND t.time_of_day::date = $2::date
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -117,8 +117,8 @@ export async function dueDailyToday(userId, todayLocal) {
           % COALESCE(t.recurrence_interval, 1)
         ) = 0
       )
-      -- due "today" in terms of schedule, and task_time must also be today
-      AND t.task_time::date = $2::date
+      -- due "today" in terms of schedule, and time_of_day must also be today
+      AND t.time_of_day::date = $2::date
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -146,7 +146,7 @@ export async function dueWeeklyToday(userId, todayLocal) {
         ) = 0
       )
       AND $3 = ANY(t.recurrence_by_weekday)
-      AND t.task_time::date = $2::date
+      AND t.time_of_day::date = $2::date
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -183,7 +183,7 @@ export async function dueMonthlyToday(userId, todayLocal) {
           EXTRACT(DAY FROM (date_trunc('month', $2::date) + INTERVAL '1 month - 1 day'))::int
         )
       )
-      AND t.task_time::date = $2::date
+      AND t.time_of_day::date = $2::date
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -223,7 +223,7 @@ export default async function tasksReminder() {
       });
 
       // Example payload returned:
-      // [{ task_name, task_description, category_name, remind_time, task_time, reminder_before_minutes }, ...]
+      // [{ task_name, task_description, category_name, remind_time, time_of_day, reminder_before_minutes }, ...]
       // TODO: send notifications here
       // for (const task of due) await notifyUser(user.id, task);
 
