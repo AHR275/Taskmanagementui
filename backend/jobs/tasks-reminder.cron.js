@@ -20,7 +20,7 @@ import { sendEmail } from "../shared/gmail.js";
  *   If task_time is only TIME, tell me and I’ll rewrite the SQL to build a timestamp for today.
  */
 
-const WINDOW_MINUTES = 10;
+const WINDOW_MINUTES = 30;
 
 // ---------- Date helpers ----------
 
