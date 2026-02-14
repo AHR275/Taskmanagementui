@@ -1,5 +1,5 @@
 import pool from "../shared/databases/db.js";
-import { sendEmail } from "../shared/gmail.js";
+// import { sendEmail } from "../shared/gmail.js";
 
 /**
  * Reminders job:
