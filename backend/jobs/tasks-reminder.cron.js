@@ -93,6 +93,9 @@ const BASE_SELECT_SQL = `
 export async function dueOneTimeToday(userId, todayLocal,timezone) {
   const sql = `
     ${BASE_SELECT_SQL}
+    LEFT JOIN task_completions tc
+      ON tc.task_id = t.id
+      AND tc.completed_on::date != $2::date
     WHERE t.user_id = $1
       AND t.type = 'one_time'
       AND t.due_at::date = $2::date
@@ -120,8 +123,9 @@ export async function dueDailyToday(userId, todayLocal) {
           % COALESCE(t.recurrence_interval, 1)
         ) = 0
       )
+
       -- due "today" in terms of schedule, and time_of_day must also be today
-      AND t.time_of_day::date = $2::date
+      
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -149,7 +153,7 @@ export async function dueWeeklyToday(userId, todayLocal) {
         ) = 0
       )
       AND $3 = ANY(t.recurrence_by_weekday)
-      AND t.time_of_day::date = $2::date
+     
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
@@ -186,7 +190,7 @@ export async function dueMonthlyToday(userId, todayLocal) {
           EXTRACT(DAY FROM (date_trunc('month', $2::date) + INTERVAL '1 month - 1 day'))::int
         )
       )
-      AND t.time_of_day::date = $2::date
+    
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
