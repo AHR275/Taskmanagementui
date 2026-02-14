@@ -47,19 +47,22 @@ function isoWeekdayFromISODate(isoDateStr) {
 // ---------- Shared SQL snippets ----------
 
 // Computed reminder timestamp (remind_time)
-const REMIND_TIME_SQL = `
-(
-  t.time_of_day
-  - (COALESCE(t.reminder_before_minutes, 0) || ' minutes')::interval
-)
+const TASK_TIME_SQL = `
+  ( ($2::date + t.time_of_day) AT TIME ZONE $3 )
 `;
 
-// Reminder window: now -> now+10min (inclusive/exclusive)
+// subtract reminder minutes
+const REMIND_TIME_SQL = `
+  (
+    ${TASK_TIME_SQL}
+    - (COALESCE(t.reminder_before_minutes, 0) || ' minutes')::interval
+  )
+`;
+
 const REMIND_WINDOW_SQL = `
   ${REMIND_TIME_SQL} >= NOW()
   AND ${REMIND_TIME_SQL} < NOW() + INTERVAL '${WINDOW_MINUTES} minutes'
 `;
-
 // Must be enabled + not completed today
 const REMINDER_GUARDS_SQL = `
   t.reminder_enabled = TRUE
@@ -87,7 +90,7 @@ const BASE_SELECT_SQL = `
 
 // ---------- 1) One-time due today ----------
 
-export async function dueOneTimeToday(userId, todayLocal) {
+export async function dueOneTimeToday(userId, todayLocal,timezone) {
   const sql = `
     ${BASE_SELECT_SQL}
     WHERE t.user_id = $1
@@ -98,7 +101,7 @@ export async function dueOneTimeToday(userId, todayLocal) {
     ORDER BY remind_time ASC;
   `;
 
-  const res = await pool.query(sql, [userId, todayLocal]);
+  const res = await pool.query(sql, [userId, todayLocal,timezone]);
   return res.rows;
 }
 
@@ -205,7 +208,7 @@ export default async function tasksReminder() {
     const todayLocal = getLocalDateISO(user.timezone);
 
     const [oneTime, daily, weekly, monthly] = await Promise.all([
-      dueOneTimeToday(user.id, todayLocal),
+      dueOneTimeToday(user.id, todayLocal,user.timezone),
       dueDailyToday(user.id, todayLocal),
       dueWeeklyToday(user.id, todayLocal),
       dueMonthlyToday(user.id, todayLocal),
