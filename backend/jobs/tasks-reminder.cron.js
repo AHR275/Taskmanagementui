@@ -92,7 +92,7 @@ export async function dueOneTimeToday(userId, todayLocal) {
     ${BASE_SELECT_SQL}
     WHERE t.user_id = $1
       AND t.type = 'one_time'
-      AND t.time_of_day::date = $2::date
+      AND t.due_at::date = $2::date
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
