@@ -74,7 +74,7 @@ export default function SignUp({onClose,setIsLoading}){
             <div className="flex flex-column gap-4">
                 <div>
                     <label htmlFor='name'>Name</label>
-                    <input type="text" name="name" placeholder="Enter your name "   
+                    <input required type="text" name="name" placeholder="Enter your name "   
                     value={name} onChange={(e)=>{setName(e.currentTarget.value)}} 
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     // onInputCapture={isValid}
@@ -84,7 +84,7 @@ export default function SignUp({onClose,setIsLoading}){
 
                 <div>
                     <label htmlFor='username'>Username</label>
-                    <input type="username" name="username" placeholder="Enter your username "   
+                    <input required type="username" name="username" placeholder="Enter your username "   
                     value={username} onChange={(e)=>{setUsername(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -93,7 +93,7 @@ export default function SignUp({onClose,setIsLoading}){
 
                 <div>
                     <label htmlFor='email'>Email</label>
-                    <input type="email" name="email" placeholder="Enter your email "   
+                    <input required type="email" name="email" placeholder="Enter your email "   
                     value={email} onChange={(e)=>{setEmail(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -102,7 +102,7 @@ export default function SignUp({onClose,setIsLoading}){
 
                 <div>
                     <label htmlFor='password'>Password</label>
-                    <input type="password" name="password" placeholder="Enter your password "   
+                    <input required type="password" name="password" placeholder="Enter your password "   
                     value={password} onChange={(e)=>{setPassword(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -111,7 +111,7 @@ export default function SignUp({onClose,setIsLoading}){
 
                 <div>
                     <label htmlFor='password'>Profile Image</label>
-                    <input
+                    <input required
                         id="avatar-input"
                         type="file"
                         accept="image/png,image/jpeg,image/webp"

@@ -201,6 +201,7 @@ export default async function tasksReminder() {
   );
 
   for (const user of usersRes.rows) {
+    console.log(user.username)
     const todayLocal = getLocalDateISO(user.timezone);
 
     const [oneTime, daily, weekly, monthly] = await Promise.all([
@@ -211,6 +212,8 @@ export default async function tasksReminder() {
     ]);
 
     const due = [...oneTime, ...daily, ...weekly, ...monthly];
+
+    console.log(due);
 
     if (due.length > 0) {
       console.log("REMINDERS_DUE", {

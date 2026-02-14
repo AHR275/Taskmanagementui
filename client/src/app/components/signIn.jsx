@@ -64,7 +64,7 @@ const handleSubmit = async (e) => {
 
                 <div>
                     <label htmlFor='username'>Username/Email</label>
-                    <input type="username" name="username" placeholder="Enter your username "   
+                    <input required type="username" name="username" placeholder="Enter your username "   
                     value={username} onChange={(e)=>{setUsername(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -75,7 +75,7 @@ const handleSubmit = async (e) => {
 
                 <div>
                     <label htmlFor='password'>Password</label>
-                    <input type="password" name="password" placeholder="Enter your password "   
+                    <input required type="password" name="password" placeholder="Enter your password "   
                     value={password} onChange={(e)=>{setPassword(e.currentTarget.value)}}
                     className="w-full px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
