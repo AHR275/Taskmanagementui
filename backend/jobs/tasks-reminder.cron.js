@@ -85,7 +85,7 @@ const BASE_SELECT_SQL = `
     ON c.id = t.category_id
   LEFT JOIN task_completions tc
     ON tc.task_id = t.id
-   AND tc.completed_on::date = $2::date
+   AND tc.completed_on::date != $2::date
 `;
 
 // ---------- 1) One-time due today ----------
@@ -93,9 +93,7 @@ const BASE_SELECT_SQL = `
 export async function dueOneTimeToday(userId, todayLocal,timezone) {
   const sql = `
     ${BASE_SELECT_SQL}
-    LEFT JOIN task_completions tc
-      ON tc.task_id = t.id
-      AND tc.completed_on::date != $2::date
+    
     WHERE t.user_id = $1
       AND t.type = 'one_time'
       AND t.due_at::date = $2::date
