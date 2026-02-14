@@ -108,7 +108,7 @@ export async function dueOneTimeToday(userId, todayLocal,timezone) {
 
 // ---------- 2) Daily recurring due today ----------
 
-export async function dueDailyToday(userId, todayLocal) {
+export async function dueDailyToday(userId, todayLocal,timezone) {
   const sql = `
     ${BASE_SELECT_SQL}
     WHERE t.user_id = $1
@@ -129,13 +129,13 @@ export async function dueDailyToday(userId, todayLocal) {
     ORDER BY remind_time ASC;
   `;
 
-  const res = await pool.query(sql, [userId, todayLocal]);
+  const res = await pool.query(sql, [userId, todayLocal,timezone]);
   return res.rows;
 }
 
 // ---------- 3) Weekly recurring due today ----------
 
-export async function dueWeeklyToday(userId, todayLocal) {
+export async function dueWeeklyToday(userId, todayLocal,timezone) {
   const iso = isoWeekdayFromISODate(todayLocal);
 
   const sql = `
@@ -150,20 +150,20 @@ export async function dueWeeklyToday(userId, todayLocal) {
           % COALESCE(t.recurrence_interval, 1)
         ) = 0
       )
-      AND $3 = ANY(t.recurrence_by_weekday)
+      AND $4 = ANY(t.recurrence_by_weekday)
      
       AND ${REMINDER_GUARDS_SQL}
       AND ${REMIND_WINDOW_SQL}
     ORDER BY remind_time ASC;
   `;
 
-  const res = await pool.query(sql, [userId, todayLocal, iso]);
+  const res = await pool.query(sql, [userId, todayLocal,timezone, iso]);
   return res.rows;
 }
 
 // ---------- 4) Monthly recurring due today ----------
 
-export async function dueMonthlyToday(userId, todayLocal) {
+export async function dueMonthlyToday(userId, todayLocal,timezone) {
   const sql = `
     ${BASE_SELECT_SQL}
     WHERE t.user_id = $1
@@ -194,7 +194,7 @@ export async function dueMonthlyToday(userId, todayLocal) {
     ORDER BY remind_time ASC;
   `;
 
-  const res = await pool.query(sql, [userId, todayLocal]);
+  const res = await pool.query(sql, [userId, todayLocal,timezone]);
   return res.rows;
 }
 
@@ -211,9 +211,9 @@ export default async function tasksReminder() {
 
     const [oneTime, daily, weekly, monthly] = await Promise.all([
       dueOneTimeToday(user.id, todayLocal,user.timezone),
-      dueDailyToday(user.id, todayLocal),
-      dueWeeklyToday(user.id, todayLocal),
-      dueMonthlyToday(user.id, todayLocal),
+      dueDailyToday(user.id, todayLocal,user.timezone),
+      dueWeeklyToday(user.id, todayLocal,user.timezone),
+      dueMonthlyToday(user.id, todayLocal,user.timezone),
     ]);
 
     const due = [...oneTime, ...daily, ...weekly, ...monthly];
